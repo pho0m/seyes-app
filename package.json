@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^4.8.0",
     "@tensorflow/tfjs": "^4.1.0",
+    "antd": "^5.1.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-magic-dropzone": "^1.0.1",

@@ -8,7 +8,8 @@ export default function Router() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/camera" element={<CameraPage />} />
+      <Route path="/analytics" element={<HomePage />} />
+      <Route path="/cameras" element={<CameraPage />} />
       <Route path="/reports" element={<ReportPage />} />
       <Route path="/settings" element={<SettingsPage />} />
     </Routes>

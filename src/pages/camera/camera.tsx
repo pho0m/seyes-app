@@ -1,174 +1,17 @@
-// import React from "react";
-// import ReactDOM from "react-dom";
-// import Dropzone from "react-dropzone";
-
-// import tf from "@tensorflow/tfjs";
-
-// const weights = "/web_model/model.json";
-
-// const names = ["com_off", "com_on", "person"];
-
-// export default function CameraPage() {
-//   return (
-//     <>
-//       <div className="Dropzone-page">
-//         <div className="Dropzone-input-wrapper">
-//           <Dropzone onDrop={(acceptedFiles) => console.log(acceptedFiles)}>
-//             {({ getRootProps, getInputProps }) => (
-//               <section>
-//                 <div {...getRootProps()}>
-//                   <input {...getInputProps()} />
-//                   <p>Drag 'n' drop some files here, or click to select files</p>
-//                 </div>
-//               </section>
-//             )}
-//           </Dropzone>
-//         </div>
-//       </div>
-//     </>
-//   );
-// }
-
-// import React from "react";
-// import { InboxOutlined } from "@ant-design/icons";
-// import type { UploadProps } from "antd";
-// import { message, Upload } from "antd";
-
-// const { Dragger } = Upload;
-
-// const props: UploadProps = {
-//   name: "file",
-//   multiple: true,
-//   action: "https://www.mocky.io/v2/5cc8019d300000980a055e76",
-//   onChange(info) {
-//     const { status } = info.file;
-//     if (status !== "uploading") {
-//       console.log(info.file, info.fileList);
-//     }
-//     if (status === "done") {
-//       message.success(`${info.file.name} file uploaded successfully.`);
-//     } else if (status === "error") {
-//       message.error(`${info.file.name} file upload failed.`);
-//     }
-//   },
-//   onDrop(e) {
-//     console.log("Dropped files", e.dataTransfer.files);
-//   },
-// };
-
-// export default function CameraPage() {
-// return (
-//   <Dragger {...props}>
-//     <p className="ant-upload-drag-icon">
-//       <InboxOutlined />
-//     </p>
-//     <p className="ant-upload-text">
-//       Click or drag file to this area to upload
-//     </p>
-//     <p className="ant-upload-hint">
-//       Support for a single or bulk upload. Strictly prohibit from uploading
-//       company data or other band files
-//     </p>
-//   </Dragger>
-// );
-// }
-
-// import type { RcFile, UploadFile, UploadProps } from "antd/es/upload/interface";
-// import { InboxOutlined } from "@ant-design/icons";
-// import { Col, message, Row, Upload } from "antd";
-
-// import tf from "@tensorflow/tfjs";
-
-// const weights = "public/web_model/model.json";
-
-// console.log(weights);
-
-// const names = ["com_off", "com_on", "person"];
-
-// const { Dragger } = Upload;
-
-// export default function CameraPage() {
-//   const onPreview = async (file: UploadFile) => {
-//     let src = file.url as string;
-//     if (!src) {
-//       src = await new Promise((resolve) => {
-//         const reader = new FileReader();
-//         reader.readAsDataURL(file.originFileObj as RcFile);
-//         reader.onload = () => resolve(reader.result as string);
-//       });
-//     }
-//     const image = new Image();
-//     image.src = src;
-//     const imgWindow = window.open(src);
-//     imgWindow?.document.write(image.outerHTML);
-//   };
-
-//   const props: UploadProps = {
-//     name: "file",
-//     multiple: false,
-//     action: "http://localhost:8000/cameras",
-//     listType: "picture",
-//     accept: ".png,.jpg,.jepg",
-//     onChange(info) {
-//       const { status } = info.file;
-//       console.log(status);
-//       console.log("info :", info);
-
-//       if (status !== "uploading") {
-//         console.log(info.file, info.fileList);
-//       }
-//       if (status === "done") {
-//         message.success(`${info.file.name} file uploaded successfully.`);
-//       } else if (status === "error") {
-//         message.error(`${info.file.name} file upload failed.`);
-//       }
-//     },
-//     onPreview() {
-//       onPreview;
-//     },
-
-//     onDrop(e) {
-//       console.log("Dropped files", e.dataTransfer.files);
-//     },
-//   };
-
-//   return (
-//     <>
-//       <Row>
-//         <Col span={6} pull={18}>
-//           sdf
-//         </Col>
-
-//         <Col span={18} push={6}>
-//           <div>
-//             <Dragger {...props}>
-//               <p className="ant-upload-drag-icon">
-//                 <InboxOutlined />
-//               </p>
-//               <p className="ant-upload-text">
-//                 Click or drag file to this area to upload
-//               </p>
-//               <p className="ant-upload-hint">
-//                 Support for a single or bulk upload. Strictly prohibit from
-//                 uploading company data or other band files
-//               </p>
-//             </Dragger>
-//           </div>
-//         </Col>
-//       </Row>
-//     </>
-//   );
-// }
+import { InboxOutlined } from "@ant-design/icons";
+import { Col, message, Row, Upload, UploadProps } from "antd";
+import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 // @ts-ignore
 import MagicDropzone from "react-magic-dropzone";
 import { load, YOLO_V5_N_COCO_MODEL_CONFIG } from "yolov5js";
+import { pad } from "../../components/helper";
 const MY_MODEL: any = "./src/static/assets/web_model/model.json";
-const names = ["com_off", "com_on", "person"];
+const weight = ["com_off", "com_on", "person"];
 
 const config = {
   source: MY_MODEL,
-  classNames: names,
+  classNames: weight,
 };
 
 const WAITING_FOR_IMAGE = 0;
@@ -177,7 +20,7 @@ const INFERENCE_COMPLETED = 2;
 
 const BOX_COLORS = [
   "#FF3838",
-  "#FF9D97",
+  "#8438FF",
   "#FF701F",
   "#FFB21D",
   "#CFD231",
@@ -191,12 +34,13 @@ const BOX_COLORS = [
   "#344593",
   "#6473FF",
   "#0018EC",
-  "#8438FF",
+  "#FF9D97",
   "#520085",
   "#CB38FF",
   "#FF95C8",
   "" + "#FF37C7",
 ];
+
 const BOX_LINE_WIDTH = 2;
 const FONT_COLOR = "#FFFFFF";
 const FONT_SIZE = 12;
@@ -205,15 +49,12 @@ const FONT = FONT_SIZE + "px sans-serif";
 export default function CameraPage() {
   const [model, setModel] = useState<any>(null);
   const [status, setStatus] = useState(WAITING_FOR_IMAGE);
+  let [person, setPerson] = useState(0);
+  let [comOn, setComOn] = useState(0);
+  const [uploadAt, setUploadAt] = useState("");
+  const [timeAt, setTimeAt] = useState("");
 
   useEffect(() => {
-    console.log("config :", config);
-
-    console.log("yolo :", YOLO_V5_N_COCO_MODEL_CONFIG);
-    // console.log("ModelConfig :", ModelConfig);
-
-    // LOAD MODEL <-
-
     load(config)
       .then((model: any) => {
         setModel(model);
@@ -236,10 +77,20 @@ export default function CameraPage() {
 
   const onDrop = (accepted: any, rejected: any, links: any) => {
     setStatus(IMAGE_LOADED);
+    setPerson(0); //FIXME find new ways to refactor
+    setComOn(0);
     loadImage(accepted[0]).then((image) => {
       onImageLoad(image);
       setStatus(INFERENCE_COMPLETED);
     });
+
+    setUploadAt(dayjs().locale("th").add(543, "year").format("DD MMMM YYYY"));
+    var hour = pad(dayjs().hour(), 2);
+    var minute = pad(dayjs().minute(), 2);
+    var timeNow = hour + ":" + minute;
+    setTimeAt(timeNow);
+
+    // setTimeAt(dayjs().locale("th").add(543, "year").hour());
   };
 
   const getOriginalImageRect = (image: any) => {
@@ -305,47 +156,133 @@ export default function CameraPage() {
 
     // PREDICT <-
     model.detect(image).then((predictions: any) => {
+      person = 0;
+      comOn = 0;
       predictions.forEach((prediction: any) => {
-        const x =
-          (prediction.x / originalImageRect[2]) * scaledImageRect[2] +
-          scaledImageRect[0];
-        const y =
-          (prediction.y / originalImageRect[3]) * scaledImageRect[3] +
-          scaledImageRect[1];
-        const width =
-          (prediction.width / originalImageRect[2]) * scaledImageRect[2];
-        const height =
-          (prediction.height / originalImageRect[2]) * scaledImageRect[2];
-        const label = prediction.class + ": " + prediction.score.toFixed(1);
-        const boxColor = BOX_COLORS[prediction.classId % 20];
-        ctx.strokeStyle = boxColor;
-        ctx.lineWidth = BOX_LINE_WIDTH;
-        ctx.strokeRect(x, y, width, height);
-        const labelWidth = ctx.measureText(label).width;
-        ctx.fillStyle = boxColor;
-        ctx.fillRect(x, y, labelWidth + 4, FONT_SIZE + 4);
-        ctx.fillStyle = FONT_COLOR;
-        ctx.fillText(label, x, y);
+        var preClass = prediction.class;
+
+        // FIXME remove this logic when new model trained
+        if (preClass != "com_off") {
+          if (preClass == "person") {
+            setPerson((person += 1));
+          }
+
+          if (preClass == "com_on") {
+            setComOn((comOn += 1));
+          }
+
+          const x =
+            (prediction.x / originalImageRect[2]) * scaledImageRect[2] +
+            scaledImageRect[0];
+          const y =
+            (prediction.y / originalImageRect[3]) * scaledImageRect[3] +
+            scaledImageRect[1];
+          const width =
+            (prediction.width / originalImageRect[2]) * scaledImageRect[2];
+          const height =
+            (prediction.height / originalImageRect[2]) * scaledImageRect[2];
+          const label = prediction.class + ": " + prediction.score.toFixed(1);
+          const boxColor = BOX_COLORS[prediction.classId % 20];
+
+          console.log("color: ", boxColor);
+
+          ctx.strokeStyle = boxColor;
+          ctx.lineWidth = BOX_LINE_WIDTH;
+          ctx.strokeRect(x, y, width, height);
+          const labelWidth = ctx.measureText(label).width;
+          ctx.fillStyle = boxColor;
+          ctx.fillRect(x, y, labelWidth + 4, FONT_SIZE + 4);
+          ctx.fillStyle = FONT_COLOR;
+          ctx.fillText(label, x, y);
+        }
       });
     });
   };
 
   return (
-    <div className="Dropzone-page">
-      {model ? (
-        <MagicDropzone
-          className="Dropzone"
-          accept="image/jpeg, image/png, .jpg, .jpeg, .png"
-          multiple={false}
-          onDrop={onDrop}
-        >
-          {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
-          {status === IMAGE_LOADED && "Detection in progress."}
+    <>
+      <Row>
+        <Col xs={2} sm={4} md={6} lg={8} xl={10}>
+          <div className="Dropzone-page">
+            {model ? (
+              <MagicDropzone
+                className="Dropzone"
+                accept="image/jpeg, image/png, .jpg, .jpeg, .png"
+                multiple={false}
+                onDrop={onDrop}
+              >
+                {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
+                {status === IMAGE_LOADED && "Detection in progress."}
+                {status === INFERENCE_COMPLETED && "Success detection....  "}
+                <br />
+                {status === INFERENCE_COMPLETED &&
+                  "If you want to change image."}
+                <br />
+                {status === INFERENCE_COMPLETED && "Choose or drop a file."}
+              </MagicDropzone>
+            ) : (
+              <div className="Dropzone">Loading model...</div>
+            )}
+          </div>
+          <br /> <h1>Summary</h1>
+          <p>
+            <b>Person: </b>
+            {person}
+          </p>
+          <p>
+            <b>Com On: </b>
+            {comOn}
+          </p>
+          <p>
+            <b>Upload At: </b>
+            {uploadAt}
+          </p>
+          <p>
+            <b>Time: </b>
+            {timeAt}
+          </p>
+        </Col>
+        <Col xs={20} sm={16} md={12} lg={8} xl={4}>
           <canvas id="canvas" width="640" height="640" />
-        </MagicDropzone>
-      ) : (
-        <div className="Dropzone">Loading model...</div>
-      )}
-    </div>
+        </Col>
+      </Row>
+    </>
   );
 }
+
+// const { Dragger } = Upload;
+
+// WIP
+// const props: UploadProps = {
+//   name: "file",
+//   multiple: false,
+//   onChange(info) {
+//     const { status } = info.file;
+
+//     console.log(status);
+
+//     if (status !== "uploading") {
+//       console.log(info.file, info.fileList);
+//     }
+//     if (status === "done") {
+//       message.success(`${info.file.name} file uploaded successfully.`);
+//     } else if (status === "error") {
+//       message.error(`${info.file.name} file upload failed.`);
+//     }
+//   },
+//   onDrop(e) {
+//     onDrop(e, "", "");
+//   },
+// };
+// <Dragger {...props}>
+//               <p className="ant-upload-drag-icon">
+//                 <InboxOutlined />
+//               </p>
+//               <p className="ant-upload-text">
+//                 Click or drag file to this area to upload
+//               </p>
+//               <p className="ant-upload-hint">
+//                 Support for a single or bulk upload. Strictly prohibit from
+//                 uploading company data or other band files
+//               </p>
+//             </Dragger>

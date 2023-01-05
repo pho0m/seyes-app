@@ -1,5 +1,5 @@
 import { InboxOutlined } from "@ant-design/icons";
-import { Col, message, Row, Upload, UploadProps } from "antd";
+import { Button, Col, message, Row, Upload, UploadProps } from "antd";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 // @ts-ignore
@@ -53,6 +53,7 @@ export default function CameraPage() {
   let [comOn, setComOn] = useState(0);
   const [uploadAt, setUploadAt] = useState("");
   const [timeAt, setTimeAt] = useState("");
+  const [newImage, setNewImage] = useState("");
 
   useEffect(() => {
     load(config)
@@ -184,8 +185,6 @@ export default function CameraPage() {
           const label = prediction.class + ": " + prediction.score.toFixed(1);
           const boxColor = BOX_COLORS[prediction.classId % 20];
 
-          console.log("color: ", boxColor);
-
           ctx.strokeStyle = boxColor;
           ctx.lineWidth = BOX_LINE_WIDTH;
           ctx.strokeRect(x, y, width, height);
@@ -197,6 +196,13 @@ export default function CameraPage() {
         }
       });
     });
+
+    var a = canvas
+      .toDataURL("image/png")
+      .replace("image/png", "image/octet-stream");
+
+    setNewImage(a);
+    console.log(a);
   };
 
   return (
@@ -241,9 +247,17 @@ export default function CameraPage() {
             <b>Time: </b>
             {timeAt}
           </p>
+          {status === INFERENCE_COMPLETED ? (
+            <Button type="primary">Send To Line Notify</Button>
+          ) : (
+            <Button disabled type="primary">
+              Send To Line Notify
+            </Button>
+          )}
         </Col>
         <Col xs={20} sm={16} md={12} lg={8} xl={4}>
           <canvas id="canvas" width="640" height="640" />
+          <img src={newImage} />
         </Col>
       </Row>
     </>

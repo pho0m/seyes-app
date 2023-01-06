@@ -1,5 +1,10 @@
-import { InboxOutlined } from "@ant-design/icons";
+import {
+  FireOutlined,
+  InboxOutlined,
+  PoweroffOutlined,
+} from "@ant-design/icons";
 import { Button, Col, message, Row, Upload, UploadProps } from "antd";
+import axios from "axios";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 // @ts-ignore
@@ -53,7 +58,53 @@ export default function CameraPage() {
   let [comOn, setComOn] = useState(0);
   const [uploadAt, setUploadAt] = useState("");
   const [timeAt, setTimeAt] = useState("");
-  const [newImage, setNewImage] = useState("");
+  const [newImage, setNewImage] = useState<any>();
+
+  const [loadings, setLoadings] = useState<boolean[]>([]);
+
+  const enterLoading = async (index: number) => {
+    // setLoadings((prevLoadings) => {
+    //   const newLoadings = [...prevLoadings];
+    //   newLoadings[index] = true;
+    //   return newLoadings;
+    // });
+
+    // newImage;
+
+    const formData = new FormData();
+    formData.append("photo", newImage);
+    formData.append("person", `${person}`);
+    formData.append("com_on", `${comOn}`);
+    formData.append("upload_at", uploadAt);
+    formData.append("time", timeAt);
+
+    console.log(formData);
+
+    // console.log(formData.getAll("photo"));
+
+    try {
+      const response = await axios({
+        method: "POST",
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+        url: "http://localhost:3000/api/notify",
+      });
+
+      // console.log(response);
+
+      if (response.status === 200) {
+        console.log("pass");
+
+        // setTimeout(() => {
+        //   setLoadings((prevLoadings_1) => {
+        //     const newLoadings_1 = [...prevLoadings_1];
+        //     newLoadings_1[index] = false;
+        //     return newLoadings_1;
+        //   });
+        // }, 6000);
+      }
+    } catch (err) {}
+  };
 
   useEffect(() => {
     load(config)
@@ -73,6 +124,7 @@ export default function CameraPage() {
       image.src = url;
       image.onload = () => resolve(image);
       image.onerror = reject;
+      image.crossOrigin = "anonymous";
     });
   };
 
@@ -80,6 +132,10 @@ export default function CameraPage() {
     setStatus(IMAGE_LOADED);
     setPerson(0); //FIXME find new ways to refactor
     setComOn(0);
+
+    var file = new File([accepted[0]], "photo");
+    setNewImage(file);
+
     loadImage(accepted[0]).then((image) => {
       onImageLoad(image);
       setStatus(INFERENCE_COMPLETED);
@@ -90,8 +146,6 @@ export default function CameraPage() {
     var minute = pad(dayjs().minute(), 2);
     var timeNow = hour + ":" + minute;
     setTimeAt(timeNow);
-
-    // setTimeAt(dayjs().locale("th").add(543, "year").hour());
   };
 
   const getOriginalImageRect = (image: any) => {
@@ -197,12 +251,18 @@ export default function CameraPage() {
       });
     });
 
-    var a = canvas
-      .toDataURL("image/png")
-      .replace("image/png", "image/octet-stream");
+    // console.log(ctx);
+    // console.log(image);
+    // const imageData = ctx.getImageData(10, 20, 80, 230);
 
-    setNewImage(a);
-    console.log(a);
+    // console.log(imageData);
+
+    // var a = canvas
+    //   .toDataURL("image/png")
+    //   .replace("image/png", "image/octet-stream");
+
+    // setNewImage(a);
+    // console.log(a);
   };
 
   return (
@@ -248,7 +308,16 @@ export default function CameraPage() {
             {timeAt}
           </p>
           {status === INFERENCE_COMPLETED ? (
-            <Button type="primary">Send To Line Notify</Button>
+            <Button
+              type="primary"
+              icon={<FireOutlined />}
+              loading={loadings[1]}
+              onClick={() => {
+                enterLoading(1);
+              }}
+            >
+              Send To Line Notify
+            </Button>
           ) : (
             <Button disabled type="primary">
               Send To Line Notify
@@ -257,7 +326,7 @@ export default function CameraPage() {
         </Col>
         <Col xs={20} sm={16} md={12} lg={8} xl={4}>
           <canvas id="canvas" width="640" height="640" />
-          <img src={newImage} />
+          {/* <img src={newImage} /> */}
         </Col>
       </Row>
     </>

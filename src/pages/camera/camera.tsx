@@ -9,7 +9,8 @@ import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 // @ts-ignore
 import MagicDropzone from "react-magic-dropzone";
-import { load, YOLO_V5_N_COCO_MODEL_CONFIG } from "yolov5js";
+import Swal from "sweetalert2";
+import { load } from "yolov5js"; //YOLO_V5_N_COCO_MODEL_CONFIG
 import { pad } from "../../components/helper";
 const MY_MODEL: any = "./src/static/assets/web_model/model.json";
 const weight = ["com_off", "com_on", "person"];
@@ -63,13 +64,11 @@ export default function CameraPage() {
   const [loadings, setLoadings] = useState<boolean[]>([]);
 
   const enterLoading = async (index: number) => {
-    // setLoadings((prevLoadings) => {
-    //   const newLoadings = [...prevLoadings];
-    //   newLoadings[index] = true;
-    //   return newLoadings;
-    // });
-
-    // newImage;
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
+    });
 
     const formData = new FormData();
     formData.append("photo", newImage);
@@ -77,10 +76,6 @@ export default function CameraPage() {
     formData.append("com_on", `${comOn}`);
     formData.append("upload_at", uploadAt);
     formData.append("time", timeAt);
-
-    console.log(formData);
-
-    // console.log(formData.getAll("photo"));
 
     try {
       const response = await axios({
@@ -93,27 +88,41 @@ export default function CameraPage() {
       // console.log(response);
 
       if (response.status === 200) {
-        console.log("pass");
-
-        // setTimeout(() => {
-        //   setLoadings((prevLoadings_1) => {
-        //     const newLoadings_1 = [...prevLoadings_1];
-        //     newLoadings_1[index] = false;
-        //     return newLoadings_1;
-        //   });
-        // }, 6000);
+        setTimeout(() => {
+          setLoadings((prevLoadings_1) => {
+            const newLoadings_1 = [...prevLoadings_1];
+            newLoadings_1[index] = false;
+            return newLoadings_1;
+          });
+          Swal.fire("Success!", "data have been send!", "success");
+        }, 2000);
       }
-    } catch (err) {}
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error Something went wrong!",
+        text: "can't send data",
+      });
+    }
   };
 
   useEffect(() => {
     load(config)
       .then((model: any) => {
         setModel(model);
-        console.log("Model loaded :)");
+        Swal.fire({
+          icon: "success",
+          title: "Model Loaded :)",
+          showConfirmButton: false,
+          timer: 1500,
+        });
       })
       .catch((error) => {
-        console.log("Model failed to loaded :(");
+        Swal.fire({
+          icon: "error",
+          title: "Error Something went wrong!",
+          text: error,
+        });
       });
   }, []);
 

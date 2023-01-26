@@ -1,9 +1,5 @@
-import {
-  FireOutlined,
-  InboxOutlined,
-  PoweroffOutlined,
-} from "@ant-design/icons";
-import { Button, Col, message, Row, Upload, UploadProps } from "antd";
+import { FireOutlined } from "@ant-design/icons";
+import { Button, Col, Row, Upload, UploadProps } from "antd";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
@@ -259,19 +255,6 @@ export default function CameraPage() {
         }
       });
     });
-
-    // console.log(ctx);
-    // console.log(image);
-    // const imageData = ctx.getImageData(10, 20, 80, 230);
-
-    // console.log(imageData);
-
-    // var a = canvas
-    //   .toDataURL("image/png")
-    //   .replace("image/png", "image/octet-stream");
-
-    // setNewImage(a);
-    // console.log(a);
   };
 
   return (
@@ -335,46 +318,21 @@ export default function CameraPage() {
         </Col>
         <Col xs={20} sm={16} md={12} lg={8} xl={4}>
           <canvas id="canvas" width="640" height="640" />
-          {/* <img src={newImage} /> */}
         </Col>
       </Row>
     </>
   );
 }
 
-// const { Dragger } = Upload;
+// console.log(ctx);
+// console.log(image);
+// const imageData = ctx.getImageData(10, 20, 80, 230);
 
-// WIP
-// const props: UploadProps = {
-//   name: "file",
-//   multiple: false,
-//   onChange(info) {
-//     const { status } = info.file;
+// console.log(imageData);
 
-//     console.log(status);
+// var a = canvas
+//   .toDataURL("image/png")
+//   .replace("image/png", "image/octet-stream");
 
-//     if (status !== "uploading") {
-//       console.log(info.file, info.fileList);
-//     }
-//     if (status === "done") {
-//       message.success(`${info.file.name} file uploaded successfully.`);
-//     } else if (status === "error") {
-//       message.error(`${info.file.name} file upload failed.`);
-//     }
-//   },
-//   onDrop(e) {
-//     onDrop(e, "", "");
-//   },
-// };
-// <Dragger {...props}>
-//               <p className="ant-upload-drag-icon">
-//                 <InboxOutlined />
-//               </p>
-//               <p className="ant-upload-text">
-//                 Click or drag file to this area to upload
-//               </p>
-//               <p className="ant-upload-hint">
-//                 Support for a single or bulk upload. Strictly prohibit from
-//                 uploading company data or other band files
-//               </p>
-//             </Dragger>
+// setNewImage(a);
+// console.log(a);

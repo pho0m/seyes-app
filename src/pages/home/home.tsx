@@ -87,7 +87,12 @@ export default function HomePage() {
           hoverable={true}
           title="Person Count"
           bordered={true}
-          style={{ height: 300, width: 600, margin: 10 }}
+          style={{
+            height: 300,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
         >
           27
         </Card>
@@ -95,7 +100,12 @@ export default function HomePage() {
           hoverable={true}
           title="Com On Count"
           bordered={true}
-          style={{ height: 300, width: 600, margin: 10 }}
+          style={{
+            height: 300,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
         >
           22
         </Card>
@@ -106,14 +116,24 @@ export default function HomePage() {
           hoverable={true}
           title="Lasted time"
           bordered={true}
-          style={{ height: 300, width: 600, margin: 10 }}
+          style={{
+            height: 300,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
         >
           2m 34s
         </Card>
         <Card
           hoverable={true}
           bordered={true}
-          style={{ height: 300, width: 600, margin: 10 }}
+          style={{
+            height: 300,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
           cover={<img height={300} alt="Logo" src={logo} />}
         ></Card>
         <Col span={24} style={{ margin: 10 }}>

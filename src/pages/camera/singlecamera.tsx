@@ -54,7 +54,7 @@ const FONT_COLOR = "#FFFFFF";
 const FONT_SIZE = 12;
 const FONT = FONT_SIZE + "px sans-serif";
 
-export default function CameraPage() {
+export default function SigleCameraPage() {
   const [model, setModel] = useState<any>(null);
   const [status, setStatus] = useState(WAITING_FOR_IMAGE);
   let [person, setPerson] = useState(0);
@@ -271,7 +271,12 @@ export default function CameraPage() {
           hoverable={true}
           title="Camera 703"
           bordered={true}
-          style={{ height: 350, width: 600, margin: 10 }}
+          style={{
+            height: 350,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
         >
           <VideoRender src="http://localhost:8083/stream/uuid-pattern/channel/0/hls/live/index.m3u8" />
         </Card>
@@ -279,7 +284,12 @@ export default function CameraPage() {
           hoverable={true}
           title="AI Detection"
           bordered={true}
-          style={{ height: 350, width: 600, margin: 10 }}
+          style={{
+            height: 350,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
         >
           <div className="Dropzone-page">
             {model ? (
@@ -311,7 +321,12 @@ export default function CameraPage() {
           hoverable={true}
           title="Details Room 703"
           bordered={true}
-          style={{ height: 350, width: 600, margin: 10 }}
+          style={{
+            height: 350,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
         >
           27
         </Card>
@@ -319,7 +334,12 @@ export default function CameraPage() {
           hoverable={true}
           title="Details for Notify"
           bordered={true}
-          style={{ height: 350, width: 600, margin: 10 }}
+          style={{
+            height: 350,
+            width: 600,
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
         >
           <Button
             type="primary"

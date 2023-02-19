@@ -88,8 +88,8 @@ export default function HomePage() {
           title="Person Count"
           bordered={true}
           style={{
-            height: 300,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "50vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}
@@ -101,8 +101,8 @@ export default function HomePage() {
           title="Com On Count"
           bordered={true}
           style={{
-            height: 300,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "50vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}
@@ -117,8 +117,8 @@ export default function HomePage() {
           title="Lasted time"
           bordered={true}
           style={{
-            height: 300,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "50vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}
@@ -129,8 +129,8 @@ export default function HomePage() {
           hoverable={true}
           bordered={true}
           style={{
-            height: 300,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "50vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}

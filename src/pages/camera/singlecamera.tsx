@@ -272,8 +272,8 @@ export default function SigleCameraPage() {
           title="Camera 703"
           bordered={true}
           style={{
-            height: 350,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "50vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}
@@ -322,8 +322,8 @@ export default function SigleCameraPage() {
           title="Details Room 703"
           bordered={true}
           style={{
-            height: 350,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "50vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}

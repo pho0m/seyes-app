@@ -30,14 +30,14 @@ const VideoRender: React.FC<VideoFeedProps> = ({ src }) => {
 
   return (
     <div>
-      <video className="video-js" ref={videoRef} controls>
-        <source
-          src={
-            src
-            //"http://localhost:8083/stream/uuid-pattern/channel/0/hls/live/index.m3u8"
-          }
-          type="application/x-mpegURL"
-        />
+      <video
+        width="1080"
+        height="640"
+        className="video-js"
+        ref={videoRef}
+        controls
+      >
+        <source src={src} type="application/x-mpegURL" />
       </video>
     </div>
   );

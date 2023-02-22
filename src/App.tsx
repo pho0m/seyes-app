@@ -5,15 +5,15 @@ import {
   MenuUnfoldOutlined,
   PieChartOutlined,
   SettingOutlined,
+  UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Avatar, Image, Layout, Menu, theme } from "antd";
 import { Link } from "react-router-dom";
 import Router from "./router";
+import Title from "antd/es/typography/Title";
 
 const { Header, Sider, Content } = Layout;
-const logo =
-  "https://media.discordapp.net/attachments/1010925967469989908/1060623513951670382/SK_Project_4.png";
 
 export default function App() {
   const [collapsed, setCollapsed] = useState(false);
@@ -25,9 +25,10 @@ export default function App() {
     <Layout>
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <br />
-        <center>
-          <Avatar size={100} src={<Image src={logo} />} />
-        </center>
+        <br />
+        <Title level={5} style={{ color: "white", paddingLeft: "20px" }}>
+          SEYES
+        </Title>
 
         <Menu
           theme="dark"
@@ -54,6 +55,11 @@ export default function App() {
               icon: <SettingOutlined />,
               label: <Link to="/settings">Settings</Link>,
             },
+            // {
+            //   key: "5",
+            //   icon: <UserOutlined />,
+            //   label: <Link to="/users">Users</Link>,
+            // },
           ]}
         />
       </Sider>

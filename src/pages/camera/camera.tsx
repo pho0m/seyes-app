@@ -1,5 +1,6 @@
 import { FireOutlined } from "@ant-design/icons";
-import { Button, Col, Row, Upload, UploadProps } from "antd";
+import { Button, Card, Col, Row, Upload, UploadProps } from "antd";
+import Title from "antd/es/typography/Title";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
@@ -8,8 +9,9 @@ import MagicDropzone from "react-magic-dropzone";
 import Swal from "sweetalert2";
 import { load } from "yolov5js"; //YOLO_V5_N_COCO_MODEL_CONFIG
 import { pad } from "../../components/helper";
-const MY_MODEL: any = "./src/static/assets/web_model/model.json";
-const weight = ["com_off", "com_on", "person"];
+import VideoRender from "../../components/video";
+const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
+const weight = ["com_on", "person"];
 
 const config = {
   source: MY_MODEL,
@@ -56,51 +58,7 @@ export default function CameraPage() {
   const [uploadAt, setUploadAt] = useState("");
   const [timeAt, setTimeAt] = useState("");
   const [newImage, setNewImage] = useState<any>();
-
   const [loadings, setLoadings] = useState<boolean[]>([]);
-
-  const enterLoading = async (index: number) => {
-    setLoadings((prevLoadings) => {
-      const newLoadings = [...prevLoadings];
-      newLoadings[index] = true;
-      return newLoadings;
-    });
-
-    const formData = new FormData();
-    formData.append("photo", newImage);
-    formData.append("person", `${person}`);
-    formData.append("com_on", `${comOn}`);
-    formData.append("upload_at", uploadAt);
-    formData.append("time", timeAt);
-
-    try {
-      const response = await axios({
-        method: "POST",
-        data: formData,
-        headers: { "Content-Type": "multipart/form-data" },
-        url: "http://localhost:3000/api/notify",
-      });
-
-      // console.log(response);
-
-      if (response.status === 200) {
-        setTimeout(() => {
-          setLoadings((prevLoadings_1) => {
-            const newLoadings_1 = [...prevLoadings_1];
-            newLoadings_1[index] = false;
-            return newLoadings_1;
-          });
-          Swal.fire("Success!", "data have been send!", "success");
-        }, 2000);
-      }
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error Something went wrong!",
-        text: "can't send data",
-      });
-    }
-  };
 
   useEffect(() => {
     load(config)
@@ -122,6 +80,52 @@ export default function CameraPage() {
       });
   }, []);
 
+  const onSubmitToNotify = async (index: number) => {
+    const canvas: any = document.getElementById("canvas");
+    let canvasURL = canvas.toDataURL();
+    let file = dataURLtoFile(canvasURL, "photo");
+    setNewImage(file);
+
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
+    });
+
+    const formData = new FormData();
+    formData.append("photo", file);
+    formData.append("person", `${person}`);
+    formData.append("com_on", `${comOn}`);
+    formData.append("upload_at", uploadAt);
+    formData.append("time", timeAt);
+
+    try {
+      const response = await axios({
+        method: "POST",
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+        url: "http://localhost:3000/api/notify",
+      });
+
+      if (response.status === 200) {
+        setTimeout(() => {
+          setLoadings((prevLoadings_1) => {
+            const newLoadings_1 = [...prevLoadings_1];
+            newLoadings_1[index] = false;
+            return newLoadings_1;
+          });
+          Swal.fire("Success!", "data have been send!", "success");
+        }, 2000);
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error Something went wrong!",
+        text: "can't send data",
+      });
+    }
+  };
+
   const loadImage = (fileData: any) => {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(fileData);
@@ -137,9 +141,6 @@ export default function CameraPage() {
     setStatus(IMAGE_LOADED);
     setPerson(0); //FIXME find new ways to refactor
     setComOn(0);
-
-    var file = new File([accepted[0]], "photo");
-    setNewImage(file);
 
     loadImage(accepted[0]).then((image) => {
       onImageLoad(image);
@@ -221,44 +222,72 @@ export default function CameraPage() {
       predictions.forEach((prediction: any) => {
         var preClass = prediction.class;
 
-        // FIXME remove this logic when new model trained
-        if (preClass != "com_off") {
-          if (preClass == "person") {
-            setPerson((person += 1));
-          }
-
-          if (preClass == "com_on") {
-            setComOn((comOn += 1));
-          }
-
-          const x =
-            (prediction.x / originalImageRect[2]) * scaledImageRect[2] +
-            scaledImageRect[0];
-          const y =
-            (prediction.y / originalImageRect[3]) * scaledImageRect[3] +
-            scaledImageRect[1];
-          const width =
-            (prediction.width / originalImageRect[2]) * scaledImageRect[2];
-          const height =
-            (prediction.height / originalImageRect[2]) * scaledImageRect[2];
-          const label = prediction.class + ": " + prediction.score.toFixed(1);
-          const boxColor = BOX_COLORS[prediction.classId % 20];
-
-          ctx.strokeStyle = boxColor;
-          ctx.lineWidth = BOX_LINE_WIDTH;
-          ctx.strokeRect(x, y, width, height);
-          const labelWidth = ctx.measureText(label).width;
-          ctx.fillStyle = boxColor;
-          ctx.fillRect(x, y, labelWidth + 4, FONT_SIZE + 4);
-          ctx.fillStyle = FONT_COLOR;
-          ctx.fillText(label, x, y);
+        if (preClass == "person") {
+          setPerson((person += 1));
         }
+
+        if (preClass == "com_on") {
+          setComOn((comOn += 1));
+        }
+
+        const x =
+          (prediction.x / originalImageRect[2]) * scaledImageRect[2] +
+          scaledImageRect[0];
+        const y =
+          (prediction.y / originalImageRect[3]) * scaledImageRect[3] +
+          scaledImageRect[1];
+        const width =
+          (prediction.width / originalImageRect[2]) * scaledImageRect[2];
+        const height =
+          (prediction.height / originalImageRect[2]) * scaledImageRect[2];
+        const label = prediction.class + ": " + prediction.score.toFixed(2);
+        const boxColor = BOX_COLORS[prediction.classId % 20];
+
+        ctx.strokeStyle = boxColor;
+        ctx.lineWidth = BOX_LINE_WIDTH;
+        ctx.strokeRect(x, y, width, height);
+        const labelWidth = ctx.measureText(label).width;
+        ctx.fillStyle = boxColor;
+        ctx.fillRect(x, y, labelWidth + 4, FONT_SIZE + 4);
+        ctx.fillStyle = FONT_COLOR;
+        ctx.fillText(label, x, y);
       });
     });
   };
 
+  const dataURLtoFile = (dataurl: any, filename: any) => {
+    var arr = dataurl.split(","),
+      mime = arr[0].match(/:(.*?);/)[1],
+      bstr = atob(arr[1]),
+      n = bstr.length,
+      u8arr = new Uint8Array(n);
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new File([u8arr], filename, { type: mime });
+  };
+
   return (
     <>
+      <div className="site-card-wrapper">
+        <Row gutter={18}>
+          <Col span={6}>
+            <div className="site-card-border-less-wrapper">
+              <Card title="Camera 1" bordered={false} style={{ width: 300 }}>
+                <VideoRender src="http://localhost:8083/stream/uuid-pattern/channel/0/hls/live/index.m3u8" />
+              </Card>
+            </div>
+
+            <div className="site-card-border-less-wrapper">
+              <Card title="Camera 2" bordered={false} style={{ width: 300 }}>
+                <VideoRender src="http://localhost:3001/stream/aefc49f7-e29b-4a84-bd42-7ba08e51f16d/channel/0/hls/live/index.m3u8" />
+              </Card>
+            </div>
+          </Col>
+        </Row>
+      </div>
       <Row>
         <Col xs={2} sm={4} md={6} lg={8} xl={10}>
           <div className="Dropzone-page">
@@ -305,7 +334,7 @@ export default function CameraPage() {
               icon={<FireOutlined />}
               loading={loadings[1]}
               onClick={() => {
-                enterLoading(1);
+                onSubmitToNotify(1);
               }}
             >
               Send To Line Notify
@@ -317,22 +346,9 @@ export default function CameraPage() {
           )}
         </Col>
         <Col xs={20} sm={16} md={12} lg={8} xl={4}>
-          <canvas id="canvas" width="640" height="640" />
+          <canvas id="canvas" width="1920" height="1080" />
         </Col>
       </Row>
     </>
   );
 }
-
-// console.log(ctx);
-// console.log(image);
-// const imageData = ctx.getImageData(10, 20, 80, 230);
-
-// console.log(imageData);
-
-// var a = canvas
-//   .toDataURL("image/png")
-//   .replace("image/png", "image/octet-stream");
-
-// setNewImage(a);
-// console.log(a);

@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 
-const VideoRender: React.FC<VideoFeedProps> = ({ src }) => {
+const VideoRender: React.FC<VideoFeedProps> = ({ src, isControl }) => {
   const videoRef = useRef(null);
   const [player, setPlayer] = useState<ReturnType<typeof videojs>>();
 
@@ -14,7 +14,7 @@ const VideoRender: React.FC<VideoFeedProps> = ({ src }) => {
 
       setPlayer(
         videojs(videoElement, {}, () => {
-          console.log("player is ready");
+          console.log("live is ready to play");
         })
       );
     }
@@ -31,11 +31,12 @@ const VideoRender: React.FC<VideoFeedProps> = ({ src }) => {
   return (
     <div>
       <video
-        width="1080"
-        height="640"
-        className="video-js"
+        id="videos"
+        width="400"
+        className="video-js vjs-default-skin vjs-16-9"
         ref={videoRef}
-        controls
+        controls={isControl}
+        autoPlay={true}
       >
         <source src={src} type="application/x-mpegURL" />
       </video>
@@ -45,6 +46,7 @@ const VideoRender: React.FC<VideoFeedProps> = ({ src }) => {
 
 interface VideoFeedProps {
   src: string;
+  isControl: boolean;
 }
 
 export default VideoRender;

@@ -14,6 +14,25 @@ export interface ReportsTable {
   comon_count: number | undefined | null;
 }
 
+export const camTable: ColumnsType<ReportsTable> = [
+  { title: "ID", dataIndex: "id", key: "id" },
+  { title: "Status", dataIndex: "status", key: "status" },
+  {
+    title: "Date Time",
+    key: "date_time",
+    dataIndex: "date_time",
+  },
+  {
+    title: "Action",
+    key: "action",
+    render: (_, record) => (
+      <Space size="middle">
+        <Link to={{ pathname: `/reports/${record.id}` }}>Details</Link>
+      </Space>
+    ),
+  },
+];
+
 export const homePageTable: ColumnsType<ReportsTable> = [
   { title: "ID", dataIndex: "id", key: "id" },
   { title: "Label", dataIndex: "label", key: "label" },

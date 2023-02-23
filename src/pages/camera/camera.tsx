@@ -1,15 +1,38 @@
-import { FireOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Row, Upload, UploadProps } from "antd";
-import Title from "antd/es/typography/Title";
+import { CameraOutlined, FireOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  Form,
+  Row,
+  Space,
+  Switch,
+  Table,
+  Upload,
+  UploadProps,
+} from "antd";
 import axios from "axios";
-import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 // @ts-ignore
 import MagicDropzone from "react-magic-dropzone";
 import Swal from "sweetalert2";
 import { load } from "yolov5js"; //YOLO_V5_N_COCO_MODEL_CONFIG
-import { pad } from "../../components/helper";
+import { dateTimeFormat, pad } from "../../components/helper";
+import {
+  dataURLtoFile,
+  drawImageOnCanvas,
+  getBase64Dimensions,
+  getOriginalImageRect,
+  getScaledImageRect,
+  loadImage,
+} from "../../components/model";
 import VideoRender from "../../components/video";
+import { camTable, ReportsTable } from "../../components/interface";
+import "video.js/dist/video-js.css";
+import * as htmlToImage from "html-to-image";
+
+const env = import.meta.env;
 const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
 const weight = ["com_on", "person"];
 
@@ -55,23 +78,60 @@ export default function CameraPage() {
   const [status, setStatus] = useState(WAITING_FOR_IMAGE);
   let [person, setPerson] = useState(0);
   let [comOn, setComOn] = useState(0);
-  const [uploadAt, setUploadAt] = useState("");
-  const [timeAt, setTimeAt] = useState("");
+  const [uploadAt, setUploadAt] = useState("no data");
+  const [timeAt, setTimeAt] = useState("no data");
   const [newImage, setNewImage] = useState<any>();
   const [loadings, setLoadings] = useState<boolean[]>([]);
+  const [loadingPage, setLoadingPage] = useState(true);
+  const [isControl, setIsControl] = useState(false);
+
+  //FIXME rtsp dynamic cam
+  const rtspCam =
+    env.VITE_RTSP_URL +
+    "/stream/aefc49f7-e29b-4a84-bd42-7ba08e51f16d/channel/0/hls/live/index.m3u8";
 
   useEffect(() => {
+    let timerInterval: any;
+
+    loadingPage &&
+      Swal.fire({
+        title: "Wait a minute",
+        html: `I will close in milliseconds.`,
+        timer: loadingPage ? 5000 : 0,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+
+          timerInterval = setInterval(() => {
+            Swal.getTimerLeft();
+          }, 100);
+        },
+        willClose: () => {
+          clearInterval(timerInterval);
+        },
+      }).then((result) => {
+        /* Read more about handling dismissals below */
+        if (result.dismiss === Swal.DismissReason.timer) {
+          console.log("I was closed by the timer");
+        }
+      });
+
     load(config)
       .then((model: any) => {
         setModel(model);
+        setLoadingPage(false);
         Swal.fire({
           icon: "success",
-          title: "Model Loaded :)",
+          title: "Model loaded",
+          text: "Ready for rock",
           showConfirmButton: false,
           timer: 1500,
         });
+        setLoadingPage(true);
       })
       .catch((error) => {
+        setLoadingPage(false);
         Swal.fire({
           icon: "error",
           title: "Error Something went wrong!",
@@ -104,7 +164,7 @@ export default function CameraPage() {
         method: "POST",
         data: formData,
         headers: { "Content-Type": "multipart/form-data" },
-        url: "http://localhost:3000/api/notify",
+        url: env.VITE_BASE_URL + "/notify",
       });
 
       if (response.status === 200) {
@@ -126,18 +186,60 @@ export default function CameraPage() {
     }
   };
 
-  const loadImage = (fileData: any) => {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(fileData);
-      const image = new Image();
-      image.src = url;
-      image.onload = () => resolve(image);
-      image.onerror = reject;
-      image.crossOrigin = "anonymous";
+  const enterCapture = async (index: number) => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
     });
+
+    const videoElement: any = document.getElementById(
+      "videos"
+    ) as HTMLImageElement;
+
+    htmlToImage
+      .toPng(videoElement)
+      .then(async (dataUrl) => {
+        var img = new Image();
+        img.src = dataUrl;
+        // document.body.appendChild(img);
+
+        setStatus(IMAGE_LOADED);
+        setPerson(0); //FIXME find new ways to refactor
+        setComOn(0);
+
+        let a = await getBase64Dimensions(dataUrl);
+
+        onImageLoad(img);
+
+        setStatus(INFERENCE_COMPLETED);
+      })
+      .catch(function (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error Something went wrong!",
+          text: error,
+        });
+
+        // Swal.fire({
+        //   imageUrl: "https://placeholder.pics/svg/300x1500",
+        //   imageHeight: 1500,
+        //   imageAlt: "A tall image",
+        // });
+      });
+
+    setTimeout(() => {
+      setLoadings((prevLoadings) => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
+        Swal.fire("Success!", "Capture Success !", "success");
+
+        return newLoadings;
+      });
+    }, 5000);
   };
 
-  const onDrop = (accepted: any, rejected: any, links: any) => {
+  const onDrop = (accepted: any) => {
     setStatus(IMAGE_LOADED);
     setPerson(0); //FIXME find new ways to refactor
     setComOn(0);
@@ -147,60 +249,8 @@ export default function CameraPage() {
       setStatus(INFERENCE_COMPLETED);
     });
 
-    setUploadAt(dayjs().locale("th").add(543, "year").format("DD MMMM YYYY"));
-    var hour = pad(dayjs().hour(), 2);
-    var minute = pad(dayjs().minute(), 2);
-    var timeNow = hour + ":" + minute;
-    setTimeAt(timeNow);
-  };
-
-  const getOriginalImageRect = (image: any) => {
-    return [0, 0, image.naturalWidth, image.naturalHeight];
-  };
-
-  const getScaledImageRect = (image: any, canvas: any) => {
-    const ratio = Math.min(
-      canvas.width / image.naturalWidth,
-      canvas.height / image.naturalHeight
-    );
-    const scaledWidth = Math.round(image.naturalWidth * ratio);
-    const scaledHeight = Math.round(image.naturalHeight * ratio);
-    return [
-      (canvas.width - scaledWidth) / 2,
-      (canvas.height - scaledHeight) / 2,
-      scaledWidth,
-      scaledHeight,
-    ];
-  };
-
-  const drawImageOnCanvas = (
-    image: any,
-    ctx: any,
-    originalImageRect: any,
-    scaledImageRect: any
-  ) => {
-    const [
-      originalImageX,
-      originalImageY,
-      originalImageWidth,
-      originalImageHeight,
-    ] = originalImageRect;
-    const [scaledImageX, scaledImageY, scaledImageWidth, scaledImageHeight] =
-      scaledImageRect;
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(
-      image,
-      originalImageX,
-      originalImageY,
-      originalImageWidth,
-      originalImageHeight,
-      scaledImageX,
-      scaledImageY,
-      scaledImageWidth,
-      scaledImageHeight
-    );
+    setUploadAt(dateTimeFormat("date-thai"));
+    setTimeAt(dateTimeFormat("timenow"));
   };
 
   const onImageLoad = (image: any) => {
@@ -255,100 +305,187 @@ export default function CameraPage() {
     });
   };
 
-  const dataURLtoFile = (dataurl: any, filename: any) => {
-    var arr = dataurl.split(","),
-      mime = arr[0].match(/:(.*?);/)[1],
-      bstr = atob(arr[1]),
-      n = bstr.length,
-      u8arr = new Uint8Array(n);
+  const data: ReportsTable[] = [];
 
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-
-    return new File([u8arr], filename, { type: mime });
-  };
+  {
+    [...Array(20)].map((x, i) => {
+      i++;
+      data.push({
+        key: i,
+        id: i,
+        label: "70" + i,
+        status: "detected",
+        class: null,
+        date_time: "01/01/0001 12 am.",
+        subject: null,
+        person_count: null,
+        comon_count: null,
+      });
+    });
+  }
 
   return (
     <>
       <div className="site-card-wrapper">
-        <Row gutter={18}>
-          <Col span={6}>
-            <div className="site-card-border-less-wrapper">
-              <Card title="Camera 1" bordered={false} style={{ width: 300 }}>
-                <VideoRender src="http://localhost:8083/stream/uuid-pattern/channel/0/hls/live/index.m3u8" />
-              </Card>
-            </div>
-
-            <div className="site-card-border-less-wrapper">
-              <Card title="Camera 2" bordered={false} style={{ width: 300 }}>
-                <VideoRender src="http://localhost:3001/stream/aefc49f7-e29b-4a84-bd42-7ba08e51f16d/channel/0/hls/live/index.m3u8" />
-              </Card>
-            </div>
-          </Col>
-        </Row>
-      </div>
-      <Row>
-        <Col xs={2} sm={4} md={6} lg={8} xl={10}>
-          <div className="Dropzone-page">
-            {model ? (
-              <MagicDropzone
-                className="Dropzone"
-                accept="image/jpeg, image/png, .jpg, .jpeg, .png"
-                multiple={false}
-                onDrop={onDrop}
-              >
-                {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
-                {status === IMAGE_LOADED && "Detection in progress."}
-                {status === INFERENCE_COMPLETED && "Success detection....  "}
-                <br />
-                {status === INFERENCE_COMPLETED &&
-                  "If you want to change image."}
-                <br />
-                {status === INFERENCE_COMPLETED && "Choose or drop a file."}
-              </MagicDropzone>
-            ) : (
-              <div className="Dropzone">Loading model...</div>
-            )}
-          </div>
-          <br /> <h1>Summary</h1>
-          <p>
-            <b>Person: </b>
-            {person}
-          </p>
-          <p>
-            <b>Com On: </b>
-            {comOn}
-          </p>
-          <p>
-            <b>Upload At: </b>
-            {uploadAt}
-          </p>
-          <p>
-            <b>Time: </b>
-            {timeAt}
-          </p>
-          {status === INFERENCE_COMPLETED ? (
-            <Button
-              type="primary"
-              icon={<FireOutlined />}
-              loading={loadings[1]}
-              onClick={() => {
-                onSubmitToNotify(1);
+        <Col>
+          <Row gutter={18}>
+            <Card
+              hoverable={true}
+              title="Live Camera 703"
+              bordered={true}
+              style={{
+                margin: 10,
+                width: "45%",
+                border: "1px solid #C0C0C0",
               }}
             >
-              Send To Line Notify
-            </Button>
-          ) : (
-            <Button disabled type="primary">
-              Send To Line Notify
-            </Button>
-          )}
+              <center>
+                <VideoRender src={rtspCam} isControl={isControl} />
+              </center>
+            </Card>
+            <Card
+              hoverable={true}
+              title="Details Room 703"
+              bordered={true}
+              style={{
+                margin: 10,
+                width: "45%",
+                border: "1px solid #C0C0C0",
+              }}
+            >
+              27
+            </Card>
+          </Row>
+          <Row gutter={18}>
+            <Card
+              hoverable={true}
+              title="Action"
+              bordered={true}
+              style={{
+                margin: 10,
+                width: "45%",
+                border: "1px solid #C0C0C0",
+              }}
+            >
+              <Col>
+                <Space wrap>
+                  <Space direction="vertical">
+                    <Switch
+                      checkedChildren="Active Control Video"
+                      unCheckedChildren="Inactive Control Video"
+                      onChange={(v: boolean) => {
+                        setIsControl(v);
+                      }}
+                    />
+                    <Button
+                      type="primary"
+                      icon={<CameraOutlined />}
+                      style={{ marginRight: 10 }}
+                      loading={loadings[0]}
+                      onClick={() => enterCapture(0)}
+                    >
+                      Capture
+                    </Button>
+                    {status === INFERENCE_COMPLETED ? (
+                      <Button
+                        type="primary"
+                        icon={<FireOutlined />}
+                        loading={loadings[1]}
+                        onClick={() => {
+                          onSubmitToNotify(1);
+                        }}
+                      >
+                        Send To Line Notify
+                      </Button>
+                    ) : (
+                      <Button disabled type="primary">
+                        Send To Line Notify
+                      </Button>
+                    )}
+                  </Space>
+                </Space>
+
+                <Col>
+                  <h1>Summary</h1>
+                  <p>
+                    <b>Person: </b>
+                    {person}
+                  </p>
+                  <p>
+                    <b>Com On: </b>
+                    {comOn}
+                  </p>
+                  <p>
+                    <b>Upload At: </b>
+                    {uploadAt}
+                  </p>
+                  <p>
+                    <b>Time: </b>
+                    {timeAt}
+                  </p>
+                </Col>
+              </Col>
+            </Card>
+
+            <Card
+              hoverable={true}
+              title="Log Reports"
+              bordered={true}
+              style={{
+                margin: 10,
+                width: "45%",
+                border: "1px solid #C0C0C0",
+              }}
+            >
+              <Col>
+                <Table
+                  columns={camTable}
+                  dataSource={data}
+                  pagination={{ pageSize: 3 }}
+                  scroll={{}}
+                />
+              </Col>
+            </Card>
+          </Row>
+
+          <Row gutter={18}>
+            <Card
+              hoverable={true}
+              title="AI Detection"
+              bordered={true}
+              style={{
+                border: "1px solid #C0C0C0",
+                margin: 10,
+                width: "92%",
+              }}
+            >
+              <div className="Dropzone-page">
+                <MagicDropzone
+                  className="Dropzone"
+                  accept="image/jpeg, image/png, .jpg, .jpeg, .png"
+                  multiple={false}
+                  onDrop={onDrop}
+                >
+                  {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
+                  {status === IMAGE_LOADED && "Detection in progress."}
+                  {status === INFERENCE_COMPLETED && "Success detection....  "}
+                  <br />
+                  {status === INFERENCE_COMPLETED &&
+                    "If you want to change image."}
+                  <br />
+                  {status === INFERENCE_COMPLETED && "Choose or drop a file."}
+                </MagicDropzone>
+              </div>
+              <canvas
+                id="canvas"
+                style={{ width: "100%", height: "100%" }}
+                width="1920"
+                height="1080"
+              />
+            </Card>
+          </Row>
         </Col>
-        <Col xs={20} sm={16} md={12} lg={8} xl={4}>
-          <canvas id="canvas" width="1920" height="1080" />
-        </Col>
-      </Row>
+      </div>
     </>
   );
 }

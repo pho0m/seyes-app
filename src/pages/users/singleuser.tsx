@@ -26,6 +26,10 @@ export default function SingleUser() {
         }
       >
         <Meta title="Kittiphong Bubpawong" description="0643362043" />
+        <Input.Password
+          style={{ marginTop: 20 }}
+          placeholder="input password"
+        />
         <Button style={{ marginTop: 20 }} type="primary" onClick={updatepass}>
           Update Password
         </Button>
@@ -33,7 +37,7 @@ export default function SingleUser() {
           <>
             <Input.Password
               style={{ marginTop: 20 }}
-              placeholder="input password"
+              placeholder="Confirm password"
             />
             <Button style={{ marginTop: 20 }} type="primary" onClick={cmpass}>
               Confirm Password

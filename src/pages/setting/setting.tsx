@@ -1,4 +1,6 @@
 import { TimePicker } from "antd";
+import { ClockCircleOutlined } from "@ant-design/icons";
+
 import { Checkbox, Button, Card } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import { useState } from "react";
@@ -26,7 +28,7 @@ export default function SettingsPage() {
     let starttime = "";
     let duetime = "";
 
-    (starttime = t[0].$H), t[0].$m;
+    starttime = `${t[0].$H}` + `${t[0].$m}`;
     duetime = t[1].$H;
 
     let ti: timeparam = {
@@ -65,7 +67,7 @@ export default function SettingsPage() {
             <>
               <TimePicker.RangePicker
                 format={format}
-                minuteStep={15}
+                minuteStep={60}
                 onChange={(v) => {
                   time(v, "am");
                 }}
@@ -88,7 +90,10 @@ export default function SettingsPage() {
           <>duetime : {timeam.duetime}</>
           <h4>Evening</h4>
           <>starttime : {timepm.starttime}</>
-          <>duetime : {timepm.duetime}</>
+          <>
+            <ClockCircleOutlined />
+            duetime : {timepm.duetime}
+          </>
         </>
       </Card>
     </>

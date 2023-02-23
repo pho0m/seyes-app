@@ -24,6 +24,8 @@ export default function SettingsPage() {
     } else setOnMonday(false);
   };
 
+  //checked
+
   const time = (t: any, section: string) => {
     let starttime = "";
     let duetime = "";

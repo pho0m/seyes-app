@@ -10,6 +10,9 @@ export default function SingleUser() {
     SetCheckUpdate(true);
   };
 
+  const cmpass = () => {
+    SetCheckUpdate(false);
+  };
   return (
     <>
       <Card
@@ -24,17 +27,21 @@ export default function SingleUser() {
       >
         <Meta title="Kittiphong Bubpawong" description="0643362043" />
         <Button style={{ marginTop: 20 }} type="primary" onClick={updatepass}>
-          {checkupdate ? (
-            <>
-              <Input.Password
-                style={{ margin: 20 }}
-                placeholder="input password"
-              />
-            </>
-          ) : (
-            "Update Password"
-          )}
+          Update Password
         </Button>
+        {checkupdate ? (
+          <>
+            <Input.Password
+              style={{ marginTop: 20 }}
+              placeholder="input password"
+            />
+            <Button style={{ marginTop: 20 }} type="primary" onClick={cmpass}>
+              Confirm Password
+            </Button>
+          </>
+        ) : (
+          ""
+        )}
       </Card>
     </>
   );

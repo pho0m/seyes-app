@@ -49,11 +49,6 @@ export default function App() {
               icon: <AuditOutlined />,
               label: <Link to="/reports">Reports</Link>,
             },
-            {
-              key: "4",
-              icon: <SettingOutlined />,
-              label: <Link to="/settings">Settings</Link>,
-            },
           ]}
         />
       </Sider>

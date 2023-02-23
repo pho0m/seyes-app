@@ -3,7 +3,8 @@ import {
   CameraOutlined,
   PoweroffOutlined,
 } from "@ant-design/icons";
-import { Button, Col, message, Row, Upload, Card } from "antd";
+import { Button, Col, TimePicker, Row, Checkbox, Card } from "antd";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
@@ -64,6 +65,15 @@ export default function SigleCameraPage() {
   const [newImage, setNewImage] = useState<any>();
 
   const [loadings, setLoadings] = useState<boolean[]>([]);
+  const [onmonday, setOnMonday] = useState(false);
+  const onChangeMonday = (e: CheckboxChangeEvent) => {
+    console.log(`checked = ${e.target.checked}`);
+
+    const check = e.target.checked;
+    if (check == true) {
+      setOnMonday(true);
+    } else setOnMonday(false);
+  };
 
   const enterLoading = async (index: number) => {
     setLoadings((prevLoadings) => {
@@ -273,7 +283,7 @@ export default function SigleCameraPage() {
           bordered={true}
           style={{
             minHeight: "20vh",
-            minWidth: "50vh",
+            minWidth: "20vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}
@@ -285,8 +295,8 @@ export default function SigleCameraPage() {
           title="AI Detection"
           bordered={true}
           style={{
-            height: 350,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "20vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}
@@ -314,6 +324,44 @@ export default function SigleCameraPage() {
           </div>
           <canvas id="canvas" width="100%" height="100%" />
         </Card>
+        <Card
+          hoverable={true}
+          title="Setting Time off AI Detection"
+          bordered={true}
+          style={{
+            minHeight: "20vh",
+            minWidth: "50vh",
+            margin: 10,
+            border: "1px solid #C0C0C0",
+          }}
+        >
+          <Checkbox onChange={onChangeMonday}>
+            Monday
+            {onmonday ? (
+              <>
+                <Card
+                  title="Monday set trun off AI"
+                  hoverable={true}
+                  bordered={false}
+                  style={{
+                    height: 150,
+                    width: 300,
+                    margin: 10,
+                    border: "1px solid #C0C0C0",
+                  }}
+                >
+                  <TimePicker.RangePicker
+                    onChange={(v) => {
+                      console.log("onchange value:", v);
+                    }}
+                  />
+                </Card>
+              </>
+            ) : (
+              " Set Time off"
+            )}
+          </Checkbox>
+        </Card>
       </Row>
       <Row gutter={[48, 48]}>
         <Col span={2} />
@@ -323,7 +371,7 @@ export default function SigleCameraPage() {
           bordered={true}
           style={{
             minHeight: "20vh",
-            minWidth: "50vh",
+            minWidth: "37vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}
@@ -335,8 +383,8 @@ export default function SigleCameraPage() {
           title="Details for Notify"
           bordered={true}
           style={{
-            height: 350,
-            width: 600,
+            minHeight: "20vh",
+            minWidth: "48vh",
             margin: 10,
             border: "1px solid #C0C0C0",
           }}

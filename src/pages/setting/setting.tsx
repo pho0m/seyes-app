@@ -1,18 +1,18 @@
 import { TimePicker } from "antd";
 import { Checkbox, Button, Card } from "antd";
 import type { CheckboxChangeEvent } from "antd/es/checkbox";
-import dayjs from "dayjs";
 import { useState } from "react";
+
+interface timeparam {
+  starttime: string;
+  duetime: string;
+  section: string;
+}
 
 export default function SettingsPage() {
   const [onmonday, setOnMonday] = useState(false);
-  const [ontuesday, setOnTuesday] = useState(false);
-  const [onwednesday, setOnWednesday] = useState(false);
-  const [onthursday, setOnThursday] = useState(false);
-  const [onfriday, setOnFriday] = useState(false);
-  const [onsaturday, setOnSaturday] = useState(false);
-  const [onsunday, setOnSunday] = useState(false);
-
+  const [timeam, SetTimeam] = useState({} as timeparam);
+  const [timepm, SetTimepm] = useState({} as timeparam);
   const onChangeMonday = (e: CheckboxChangeEvent) => {
     console.log(`checked = ${e.target.checked}`);
 
@@ -21,107 +21,76 @@ export default function SettingsPage() {
       setOnMonday(true);
     } else setOnMonday(false);
   };
-  // const onChangeTuesday = (e: CheckboxChangeEvent) => {
-  //   console.log(`checked = ${e.target.checked}`);
 
-  //   const check = e.target.checked;
-  //   if (check == false) {
-  //     setOnTuesday(true);
-  //   } else setOnTuesday(false);
-  // };
+  const time = (t: any, section: string) => {
+    let starttime = "";
+    let duetime = "";
 
-  // const onChangeWednesday = (e: CheckboxChangeEvent) => {
-  //   console.log(`checked = ${e.target.checked}`);
+    (starttime = t[0].$H), t[0].$m;
+    duetime = t[1].$H;
 
-  //   const check = e.target.checked;
-  //   if (check == true) {
-  //     setOnWednesday(true);
-  //   } else setOnWednesday(false);
-  // };
+    let ti: timeparam = {
+      starttime: starttime,
+      duetime: duetime,
+      section: section,
+    };
 
-  // const onChangeThursday = (e: CheckboxChangeEvent) => {
-  //   console.log(`checked = ${e.target.checked}`);
+    if (section == "am") {
+      SetTimeam(ti);
+    } else SetTimepm(ti);
 
-  //   const check = e.target.checked;
-  //   if (check == true) {
-  //     setOnThursday(true);
-  //   } else setOnThursday(false);
-  // };
+    console.log(t[0].$H, t[0].$m);
+    console.log("section", section);
+    console.log("starttime", starttime);
+    console.log("duetime", duetime);
+  };
 
-  // const onChangeFriday = (e: CheckboxChangeEvent) => {
-  //   console.log(`checked = ${e.target.checked}`);
-
-  //   const check = e.target.checked;
-  //   if (check == true) {
-  //     setOnFriday(true);
-  //   } else setOnFriday(false);
-  // };
-
-  // const onChangeSaturday = (e: CheckboxChangeEvent) => {
-  //   console.log(`checked = ${e.target.checked}`);
-
-  //   const check = e.target.checked;
-  //   if (check == true) {
-  //     setOnSaturday(true);
-  //   } else setOnSaturday(false);
-  // };
-
-  // const onChangeSunday = (e: CheckboxChangeEvent) => {
-  //   console.log(`checked = ${e.target.checked}`);
-
-  //   const check = e.target.checked;
-  //   if (check == true) {
-  //     setOnSunday(true);
-  //   } else setOnSunday(false);
-  // };
-
+  const format = "HH:mm";
   return (
     <>
-      <Checkbox onChange={onChangeMonday}>
-        Monday
-        {onmonday ? (
-          <>
-            <Card
-              title="Monday set trun off AI"
-              hoverable={true}
-              bordered={false}
-              style={{
-                height: 150,
-                width: 300,
-                margin: 10,
-                border: "1px solid #C0C0C0",
-              }}
-            >
+      <Card
+        title="Monday set trun off AI"
+        hoverable={true}
+        bordered={false}
+        style={{
+          minHeight: "20vh",
+          minWidth: "37vh",
+          margin: 10,
+          border: "1px solid #C0C0C0",
+        }}
+      >
+        <Checkbox onChange={onChangeMonday}>
+          Monday
+          {onmonday ? (
+            <>
               <TimePicker.RangePicker
+                format={format}
+                minuteStep={15}
                 onChange={(v) => {
-                  console.log("onchange value:", v);
+                  time(v, "am");
                 }}
               />
-            </Card>
-          </>
-        ) : (
-          "Set Time off"
-        )}
-      </Checkbox>
-
-      {/* <Checkbox onChange={onChangeTuesday}>
-        Tuesday {ontuesday ? <TimePicker.RangePicker /> : "Set Time off"}
-      </Checkbox>
-      <Checkbox onChange={onChangeWednesday}>
-        Wednesday {onwednesday ? <TimePicker.RangePicker /> : "Set Time off"}
-      </Checkbox>
-      <Checkbox onChange={onChangeThursday}>
-        Thursday {onthursday ? <TimePicker.RangePicker /> : "Set Time off"}
-      </Checkbox>
-      <Checkbox onChange={onChangeFriday}>
-        Friday {onfriday ? <TimePicker.RangePicker /> : "Set Time off"}
-      </Checkbox>
-      <Checkbox onChange={onChangeSaturday}>
-        Saturday {onsaturday ? <TimePicker.RangePicker /> : "Set Time off"}
-      </Checkbox>
-      <Checkbox onChange={onChangeSunday}>
-        Sunday {onsunday ? <TimePicker.RangePicker /> : "Set Time off"}
-      </Checkbox> */}
+              <TimePicker.RangePicker
+                format={format}
+                minuteStep={15}
+                onChange={(v) => {
+                  time(v, "pm");
+                }}
+              />
+            </>
+          ) : (
+            " Set Time off"
+          )}
+        </Checkbox>
+        <>
+          <h4>Morning</h4>
+          <>starttime : {timeam.starttime}</>
+          <>duetime : {timeam.duetime}</>
+          <h4>Evening</h4>
+          <>starttime : {timepm.starttime}</>
+          <>duetime : {timepm.duetime}</>
+        </>
+      </Card>
     </>
   );
 }

@@ -4,7 +4,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PieChartOutlined,
-  SettingOutlined,
+  UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Avatar, Image, Layout, Menu, theme } from "antd";
@@ -48,6 +48,11 @@ export default function App() {
               key: "3",
               icon: <AuditOutlined />,
               label: <Link to="/reports">Reports</Link>,
+            },
+            {
+              key: "4",
+              icon: <UserOutlined />,
+              label: <Link to="/users">Users</Link>,
             },
           ]}
         />

@@ -1,4 +1,4 @@
-import { Col, Card, Row, Progress } from "antd";
+import { Col, Card, Row, Avatar } from "antd";
 import { Space, Table, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import Title from "antd/es/typography/Title";

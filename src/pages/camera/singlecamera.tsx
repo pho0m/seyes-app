@@ -1,4 +1,5 @@
-import { CameraOutlined, FireOutlined } from "@ant-design/icons";
+// @ts-ignore
+
 import {
   Button,
   Card,
@@ -11,10 +12,17 @@ import {
   Table,
   Upload,
   UploadProps,
+  TimePicker,
+  Checkbox,
 } from "antd";
+import {
+  FireOutlined,
+  CameraOutlined,
+  PoweroffOutlined,
+} from "@ant-design/icons";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import axios from "axios";
 import { useState, useEffect } from "react";
-// @ts-ignore
 import MagicDropzone from "react-magic-dropzone";
 import Swal from "sweetalert2";
 import { load } from "yolov5js"; //YOLO_V5_N_COCO_MODEL_CONFIG
@@ -73,7 +81,7 @@ const FONT_COLOR = "#FFFFFF";
 const FONT_SIZE = 12;
 const FONT = FONT_SIZE + "px sans-serif";
 
-export default function CameraPage() {
+export default function SigleCameraPage() {
   const [model, setModel] = useState<any>(null);
   const [status, setStatus] = useState(WAITING_FOR_IMAGE);
   let [person, setPerson] = useState(0);
@@ -145,6 +153,16 @@ export default function CameraPage() {
     let canvasURL = canvas.toDataURL();
     let file = dataURLtoFile(canvasURL, "photo");
     setNewImage(file);
+
+    // const [onmonday, setOnMonday] = useState(false);
+    // const onChangeMonday = (e: CheckboxChangeEvent) => {
+    //   console.log(`checked = ${e.target.checked}`);
+
+    //   const check = e.target.checked;
+    //   if (check == true) {
+    //     setOnMonday(true);
+    //   } else setOnMonday(false);
+    // };
 
     setLoadings((prevLoadings) => {
       const newLoadings = [...prevLoadings];
@@ -484,6 +502,44 @@ export default function CameraPage() {
               />
             </Card>
           </Row>
+          <Card
+            hoverable={true}
+            title="Setting Time off AI Detection"
+            bordered={true}
+            style={{
+              minHeight: "20vh",
+              minWidth: "50vh",
+              margin: 10,
+              border: "1px solid #C0C0C0",
+            }}
+          >
+            {/* <Checkbox onChange={onChangeMonday}>
+              Monday
+              {onmonday ? (
+                <>
+                  <Card
+                    title="Monday set trun off AI"
+                    hoverable={true}
+                    bordered={false}
+                    style={{
+                      height: 150,
+                      width: 300,
+                      margin: 10,
+                      border: "1px solid #C0C0C0",
+                    }}
+                  >
+                    <TimePicker.RangePicker
+                      onChange={(v) => {
+                        console.log("onchange value:", v);
+                      }}
+                    />
+                  </Card>
+                </>
+              ) : (
+                " Set Time off"
+              )}
+            </Checkbox> */}
+          </Card>
         </Col>
       </div>
     </>

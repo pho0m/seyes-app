@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import Swal from "sweetalert2";
+
+export const env = import.meta.env;
 
 export function pad(num: number, size: number) {
   let s = num + "";
@@ -31,4 +34,25 @@ export function dateTimeFormat(format: any) {
       break;
   }
   return res;
+}
+
+export function dataURLtoFile(dataurl: any, filename: any) {
+  var arr = dataurl.split(","),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new File([u8arr], filename, { type: mime });
+}
+
+export function previewImage() {
+  const canvas: any = document.getElementById("canvas");
+  let canvasURL = canvas.toDataURL();
+
+  return canvasURL;
 }

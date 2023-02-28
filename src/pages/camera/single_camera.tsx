@@ -26,9 +26,13 @@ import { useState, useEffect } from "react";
 import MagicDropzone from "react-magic-dropzone";
 import Swal from "sweetalert2";
 import { load } from "yolov5js"; //YOLO_V5_N_COCO_MODEL_CONFIG
-import { dateTimeFormat, pad } from "../../components/helper";
 import {
   dataURLtoFile,
+  dateTimeFormat,
+  previewImage,
+  env,
+} from "../../components/helper";
+import {
   drawImageOnCanvas,
   getBase64Dimensions,
   getOriginalImageRect,
@@ -39,8 +43,9 @@ import VideoRender from "../../components/video";
 import { camTable, ReportsTable } from "../../components/interface";
 import "video.js/dist/video-js.css";
 import * as htmlToImage from "html-to-image";
+import { useLocation } from "react-router";
+import { RoomData } from "./index_camera";
 
-const env = import.meta.env;
 const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
 const weight = ["com_on", "person"];
 
@@ -82,6 +87,9 @@ const FONT_SIZE = 12;
 const FONT = FONT_SIZE + "px sans-serif";
 
 export default function SigleCameraPage() {
+  const location = useLocation();
+  const { roomData } = location.state;
+
   const [model, setModel] = useState<any>(null);
   const [status, setStatus] = useState(WAITING_FOR_IMAGE);
   let [person, setPerson] = useState(0);
@@ -92,12 +100,13 @@ export default function SigleCameraPage() {
   const [loadings, setLoadings] = useState<boolean[]>([]);
   const [loadingPage, setLoadingPage] = useState(true);
   const [isControl, setIsControl] = useState(false);
+  const [accurency, setAccurency] = useState(0);
 
-  //FIXME rtsp dynamic cam
-  const rtspCam =
-    env.VITE_RTSP_URL +
-    "/stream/aefc49f7-e29b-4a84-bd42-7ba08e51f16d/channel/0/hls/live/index.m3u8";
+  const rd: RoomData = roomData;
+  const rtspCam = rd.cam_url;
+  const label = rd.label;
 
+  //Loading model
   useEffect(() => {
     let timerInterval: any;
 
@@ -118,11 +127,6 @@ export default function SigleCameraPage() {
         willClose: () => {
           clearInterval(timerInterval);
         },
-      }).then((result) => {
-        /* Read more about handling dismissals below */
-        if (result.dismiss === Swal.DismissReason.timer) {
-          console.log("I was closed by the timer");
-        }
       });
 
     load(config)
@@ -176,6 +180,7 @@ export default function SigleCameraPage() {
     formData.append("com_on", `${comOn}`);
     formData.append("upload_at", uploadAt);
     formData.append("time", timeAt);
+    formData.append("accurency", accurency.toFixed(2));
 
     try {
       const response = await axios({
@@ -208,6 +213,15 @@ export default function SigleCameraPage() {
     setLoadings((prevLoadings) => {
       const newLoadings = [...prevLoadings];
       newLoadings[index] = true;
+      Swal.fire({
+        title: "Wait a minute",
+        html: `wait for capture and drawing container`,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       return newLoadings;
     });
 
@@ -220,16 +234,19 @@ export default function SigleCameraPage() {
       .then(async (dataUrl) => {
         var img = new Image();
         img.src = dataUrl;
-        // document.body.appendChild(img);
 
         setStatus(IMAGE_LOADED);
         setPerson(0); //FIXME find new ways to refactor
         setComOn(0);
 
-        let a = await getBase64Dimensions(dataUrl);
+        let dimentions = await getBase64Dimensions(img.src);
+
+        img.width = dimentions[0]; //width
+        img.height = dimentions[1]; //height
 
         onImageLoad(img);
-
+        setUploadAt(dateTimeFormat("date-thai"));
+        setTimeAt(dateTimeFormat("timenow"));
         setStatus(INFERENCE_COMPLETED);
       })
       .catch(function (error) {
@@ -259,6 +276,7 @@ export default function SigleCameraPage() {
 
   const onDrop = (accepted: any) => {
     setStatus(IMAGE_LOADED);
+
     setPerson(0); //FIXME find new ways to refactor
     setComOn(0);
 
@@ -269,6 +287,9 @@ export default function SigleCameraPage() {
 
     setUploadAt(dateTimeFormat("date-thai"));
     setTimeAt(dateTimeFormat("timenow"));
+
+    status === INFERENCE_COMPLETED &&
+      Swal.fire("Success!", "Capture Success !", "success");
   };
 
   const onImageLoad = (image: any) => {
@@ -283,6 +304,7 @@ export default function SigleCameraPage() {
 
     drawImageOnCanvas(image, ctx, originalImageRect, scaledImageRect);
 
+    let allPredictionValue: number[] = [];
     // PREDICT <-
     model.detect(image).then((predictions: any) => {
       person = 0;
@@ -319,28 +341,18 @@ export default function SigleCameraPage() {
         ctx.fillRect(x, y, labelWidth + 4, FONT_SIZE + 4);
         ctx.fillStyle = FONT_COLOR;
         ctx.fillText(label, x, y);
+
+        allPredictionValue.push(prediction.score);
+        const sum = allPredictionValue.reduce(
+          (partialSum, a) => partialSum + a,
+          0
+        );
+
+        let acc = (sum / allPredictionValue.length) * 100;
+        setAccurency(acc);
       });
     });
   };
-
-  const data: ReportsTable[] = [];
-
-  {
-    [...Array(20)].map((x, i) => {
-      i++;
-      data.push({
-        key: i,
-        id: i,
-        label: "70" + i,
-        status: "detected",
-        class: null,
-        date_time: "01/01/0001 12 am.",
-        subject: null,
-        person_count: null,
-        comon_count: null,
-      });
-    });
-  }
 
   return (
     <>
@@ -349,7 +361,7 @@ export default function SigleCameraPage() {
           <Row gutter={18}>
             <Card
               hoverable={true}
-              title="Live Camera 703"
+              title={"Live Camera " + label}
               bordered={true}
               style={{
                 margin: 10,
@@ -361,20 +373,6 @@ export default function SigleCameraPage() {
                 <VideoRender src={rtspCam} isControl={isControl} />
               </center>
             </Card>
-            <Card
-              hoverable={true}
-              title="Details Room 703"
-              bordered={true}
-              style={{
-                margin: 10,
-                width: "45%",
-                border: "1px solid #C0C0C0",
-              }}
-            >
-              27
-            </Card>
-          </Row>
-          <Row gutter={18}>
             <Card
               hoverable={true}
               title="Action"
@@ -421,10 +419,32 @@ export default function SigleCameraPage() {
                       </Button>
                     )}
                   </Space>
+                  <div className="Dropzone-page">
+                    <MagicDropzone
+                      className="Dropzone"
+                      accept="image/jpeg, image/png, .jpg, .jpeg, .png"
+                      multiple={false}
+                      onDrop={onDrop}
+                    >
+                      {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
+                      {status === IMAGE_LOADED && "Detection in progress."}
+                      {status === INFERENCE_COMPLETED &&
+                        "Success detection....  "}
+                      <br />
+                      {status === INFERENCE_COMPLETED &&
+                        "If you want to change image."}
+                      <br />
+                      {status === INFERENCE_COMPLETED &&
+                        "Choose or drop a file."}
+                    </MagicDropzone>
+                  </div>
                 </Space>
 
                 <Col>
-                  <h1>Summary</h1>
+                  <h1>
+                    Summary now accurency ---------
+                    <b>{accurency.toFixed(2)}%</b>
+                  </h1>
                   <p>
                     <b>Person: </b>
                     {person}
@@ -444,26 +464,6 @@ export default function SigleCameraPage() {
                 </Col>
               </Col>
             </Card>
-
-            <Card
-              hoverable={true}
-              title="Log Reports"
-              bordered={true}
-              style={{
-                margin: 10,
-                width: "45%",
-                border: "1px solid #C0C0C0",
-              }}
-            >
-              <Col>
-                <Table
-                  columns={camTable}
-                  dataSource={data}
-                  pagination={{ pageSize: 3 }}
-                  scroll={{}}
-                />
-              </Col>
-            </Card>
           </Row>
 
           <Row gutter={18}>
@@ -477,28 +477,12 @@ export default function SigleCameraPage() {
                 width: "92%",
               }}
             >
-              <div className="Dropzone-page">
-                <MagicDropzone
-                  className="Dropzone"
-                  accept="image/jpeg, image/png, .jpg, .jpeg, .png"
-                  multiple={false}
-                  onDrop={onDrop}
-                >
-                  {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
-                  {status === IMAGE_LOADED && "Detection in progress."}
-                  {status === INFERENCE_COMPLETED && "Success detection....  "}
-                  <br />
-                  {status === INFERENCE_COMPLETED &&
-                    "If you want to change image."}
-                  <br />
-                  {status === INFERENCE_COMPLETED && "Choose or drop a file."}
-                </MagicDropzone>
-              </div>
               <canvas
                 id="canvas"
                 style={{ width: "100%", height: "100%" }}
                 width="1920"
                 height="1080"
+                onClick={() => status === INFERENCE_COMPLETED && previewImage()}
               />
             </Card>
           </Row>

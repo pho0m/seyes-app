@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import IndexCameraPage from "./pages/camera/index_camera";
-import SingleCameraPage from "./pages/camera/singlecamera";
+import SingleCameraPage from "./pages/camera/single_camera";
 import HomePage from "./pages/home/home";
 import ReportPage from "./pages/report/report";
 import IndexUserPage from "./pages/users/index_user";

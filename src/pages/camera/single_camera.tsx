@@ -98,13 +98,6 @@ export default function SigleCameraPage() {
   const [isControl, setIsControl] = useState(false);
   const [accurency, setAccurency] = useState(0);
 
-  const [activeSchedule, setActiveSchedule] = useState(false);
-
-  const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
-  const NOW_IN_MS = new Date().getTime();
-
-  const dateTimeAfterThreeDays = NOW_IN_MS + THREE_DAYS_IN_MS;
-
   const rd: RoomData = roomData;
   const rtspCam = rd.cam_url;
   const label = rd.label;
@@ -156,7 +149,8 @@ export default function SigleCameraPage() {
 
     // console.log(isControl);
 
-    // isControl && autoDetect();
+    // isControl &&
+    autoDetect();
   }, []);
 
   const autoDetect = () => {
@@ -167,46 +161,6 @@ export default function SigleCameraPage() {
         onSubmitToNotify(1);
       }, 2000);
     }, 30000); //1 min;
-  };
-
-  const CountdownTimer = ({ targetDate }) => {
-    const [days, hours, minutes, seconds] = useCountdown(targetDate);
-
-    if (days + hours + minutes + seconds <= 0) {
-      return <ExpiredNotice />;
-    } else {
-      return (
-        <ShowCounter
-          days={days}
-          hours={hours}
-          minutes={minutes}
-          seconds={seconds}
-        />
-      );
-    }
-  };
-
-  const ShowCounter = ({ days, hours, minutes, seconds }) => {
-    return (
-      <div className="show-counter">
-        <DateTimeDisplay value={days} type={"Days"} isDanger={days <= 3} />
-        <p>:</p>
-        <DateTimeDisplay value={hours} type={"Hours"} isDanger={false} />
-        <p>:</p>
-        <DateTimeDisplay value={minutes} type={"Mins"} isDanger={false} />
-        <p>:</p>
-        <DateTimeDisplay value={seconds} type={"Seconds"} isDanger={false} />
-      </div>
-    );
-  };
-
-  const ExpiredNotice = () => {
-    return (
-      <div className="expired-notice">
-        <span>Expired!!!</span>
-        <p>Please select a future date and time.</p>
-      </div>
-    );
   };
 
   const [focusArea, setFocusArea] = useState([

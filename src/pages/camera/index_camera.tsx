@@ -21,7 +21,7 @@ export default function IndexCameraPage() {
       label: "702",
       cam_url:
         env.VITE_RTSP_URL +
-        "/stream/f4d7690d-2da4-4fed-b3b8-88b91f4cdade/channel/0/hls/live/index.m3u8",
+        "/stream/7eee1e15-4ca4-4e80-80cd-71b368bdb551/channel/0/hls/live/index.m3u8",
     },
     {
       id: 1,
@@ -30,13 +30,13 @@ export default function IndexCameraPage() {
         env.VITE_RTSP_URL +
         "/stream/aefc49f7-e29b-4a84-bd42-7ba08e51f16d/channel/0/hls/live/index.m3u8",
     },
-    {
-      id: 2,
-      label: "704",
-      cam_url:
-        env.VITE_RTSP_URL +
-        "/stream/7eee1e15-4ca4-4e80-80cd-71b368bdb551/channel/0/hls/live/index.m3u8",
-    },
+    // {
+    //   id: 2,
+    //   label: "704",
+    //   cam_url:
+    //     env.VITE_RTSP_URL +
+    //     "/stream/7eee1e15-4ca4-4e80-80cd-71b368bdb551/channel/0/hls/live/index.m3u8",
+    // },
   ];
 
   //FIXME dynamic with api

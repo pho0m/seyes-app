@@ -4,14 +4,9 @@ import {
   Button,
   Card,
   Col,
-  Divider,
-  Form,
   Row,
   Space,
   Switch,
-  Table,
-  Upload,
-  UploadProps,
   TimePicker,
   Checkbox,
 } from "antd";
@@ -20,7 +15,6 @@ import {
   CameraOutlined,
   PoweroffOutlined,
 } from "@ant-design/icons";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import MagicDropzone from "react-magic-dropzone";
@@ -102,6 +96,8 @@ export default function SigleCameraPage() {
   const [isControl, setIsControl] = useState(false);
   const [accurency, setAccurency] = useState(0);
 
+  const [activeSchedule, setActiveSchedule] = useState(false);
+
   const rd: RoomData = roomData;
   const rtspCam = rd.cam_url;
   const label = rd.label;
@@ -150,6 +146,12 @@ export default function SigleCameraPage() {
           text: error,
         });
       });
+
+    isControl &&
+      setInterval(() => {
+        enterCapture(0);
+        onSubmitToNotify(1);
+      }, 30000); //5 min;
   }, []);
 
   const [focusArea, setFocusArea] = useState([
@@ -169,6 +171,8 @@ export default function SigleCameraPage() {
   };
 
   const CheckboxComponent = ({ list }) => {
+    const format = "HH:mm";
+
     return (
       <div>
         {list?.map((item: any, index: any) => (
@@ -195,6 +199,7 @@ export default function SigleCameraPage() {
                 >
                   <p>Morning (AM) 00:00 - 12:00</p>
                   <TimePicker.RangePicker
+                    format={format}
                     onChange={(v) => {
                       console.log("onchange value:", v);
                     }}
@@ -202,6 +207,7 @@ export default function SigleCameraPage() {
 
                   <p>Evening (PM) 12:00 - 23:00</p>
                   <TimePicker.RangePicker
+                    format={format}
                     onChange={(v) => {
                       console.log("onchange value:", v);
                     }}

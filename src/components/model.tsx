@@ -44,7 +44,10 @@ export const getScaledImageRect = (image: any, canvas: any) => {
 };
 
 export const getOriginalImageRect = (image: any) => {
-  return [0, 0, image.naturalWidth, image.naturalHeight];
+  let res = [0, 0, image.naturalWidth, image.naturalHeight];
+  console.log(res);
+
+  return res;
 };
 
 export const loadImage = (fileData: any) => {
@@ -56,20 +59,6 @@ export const loadImage = (fileData: any) => {
     image.onerror = reject;
     image.crossOrigin = "anonymous";
   });
-};
-
-export const dataURLtoFile = (dataurl: any, filename: any) => {
-  var arr = dataurl.split(","),
-    mime = arr[0].match(/:(.*?);/)[1],
-    bstr = atob(arr[1]),
-    n = bstr.length,
-    u8arr = new Uint8Array(n);
-
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-
-  return new File([u8arr], filename, { type: mime });
 };
 
 export async function getBase64Dimensions(src: string) {

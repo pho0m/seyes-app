@@ -1,4 +1,5 @@
-import { CameraOutlined, FireOutlined } from "@ant-design/icons";
+// @ts-ignore
+
 import {
   Button,
   Card,
@@ -11,16 +12,27 @@ import {
   Table,
   Upload,
   UploadProps,
+  TimePicker,
+  Checkbox,
 } from "antd";
+import {
+  FireOutlined,
+  CameraOutlined,
+  PoweroffOutlined,
+} from "@ant-design/icons";
+import type { CheckboxChangeEvent } from "antd/es/checkbox";
 import axios from "axios";
 import { useState, useEffect } from "react";
-// @ts-ignore
 import MagicDropzone from "react-magic-dropzone";
 import Swal from "sweetalert2";
 import { load } from "yolov5js"; //YOLO_V5_N_COCO_MODEL_CONFIG
-import { dateTimeFormat, pad } from "../../components/helper";
 import {
   dataURLtoFile,
+  dateTimeFormat,
+  previewImage,
+  env,
+} from "../../components/helper";
+import {
   drawImageOnCanvas,
   getBase64Dimensions,
   getOriginalImageRect,
@@ -28,11 +40,12 @@ import {
   loadImage,
 } from "../../components/model";
 import VideoRender from "../../components/video";
-import { camTable, ReportsTable } from "../../components/interface";
 import "video.js/dist/video-js.css";
 import * as htmlToImage from "html-to-image";
+import { useLocation } from "react-router";
+import { RoomData } from "./index_camera";
+import Title from "antd/es/typography/Title";
 
-const env = import.meta.env;
 const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
 const weight = ["com_on", "person"];
 
@@ -73,7 +86,10 @@ const FONT_COLOR = "#FFFFFF";
 const FONT_SIZE = 12;
 const FONT = FONT_SIZE + "px sans-serif";
 
-export default function CameraPage() {
+export default function SigleCameraPage() {
+  const location = useLocation();
+  const { roomData } = location.state;
+
   const [model, setModel] = useState<any>(null);
   const [status, setStatus] = useState(WAITING_FOR_IMAGE);
   let [person, setPerson] = useState(0);
@@ -84,12 +100,13 @@ export default function CameraPage() {
   const [loadings, setLoadings] = useState<boolean[]>([]);
   const [loadingPage, setLoadingPage] = useState(true);
   const [isControl, setIsControl] = useState(false);
+  const [accurency, setAccurency] = useState(0);
 
-  //FIXME rtsp dynamic cam
-  const rtspCam =
-    env.VITE_RTSP_URL +
-    "/stream/aefc49f7-e29b-4a84-bd42-7ba08e51f16d/channel/0/hls/live/index.m3u8";
+  const rd: RoomData = roomData;
+  const rtspCam = rd.cam_url;
+  const label = rd.label;
 
+  //Loading model
   useEffect(() => {
     let timerInterval: any;
 
@@ -110,11 +127,6 @@ export default function CameraPage() {
         willClose: () => {
           clearInterval(timerInterval);
         },
-      }).then((result) => {
-        /* Read more about handling dismissals below */
-        if (result.dismiss === Swal.DismissReason.timer) {
-          console.log("I was closed by the timer");
-        }
       });
 
     load(config)
@@ -140,6 +152,75 @@ export default function CameraPage() {
       });
   }, []);
 
+  const [focusArea, setFocusArea] = useState([
+    { focus: "Monday", isAdded: false },
+    { focus: "Tursday", isAdded: false },
+    { focus: "Wednesday", isAdded: false },
+    { focus: "Thursday", isAdded: false },
+    { focus: "Friday", isAdded: false },
+    { focus: "Saturday", isAdded: false },
+    { focus: "Sunday", isAdded: false },
+  ]);
+
+  const handleOnChange = (event, option, index) => {
+    const values = [...focusArea];
+    values[index].isAdded = event.target.checked;
+    setFocusArea(values);
+  };
+
+  const CheckboxComponent = ({ list }) => {
+    return (
+      <div>
+        {list?.map((item: any, index: any) => (
+          <Checkbox
+            id={item.focus}
+            value={item.focus}
+            onChange={(e) => handleOnChange(e, item, index)}
+            checked={item.isAdded}
+            style={{ margin: 20 }}
+          >
+            {item.isAdded ? (
+              <>
+                {item.focus}
+
+                <Card
+                  title={item.focus + " setting close time"}
+                  hoverable={true}
+                  bordered={false}
+                  style={{
+                    width: 300,
+                    margin: 10,
+                    border: "1px solid #C0C0C0",
+                  }}
+                >
+                  <p>Morning (AM) 00:00 - 12:00</p>
+                  <TimePicker.RangePicker
+                    onChange={(v) => {
+                      console.log("onchange value:", v);
+                    }}
+                  />
+
+                  <p>Evening (PM) 12:00 - 23:00</p>
+                  <TimePicker.RangePicker
+                    onChange={(v) => {
+                      console.log("onchange value:", v);
+                    }}
+                  />
+
+                  <Button type="primary" style={{ marginTop: 10 }}>
+                    Submit
+                  </Button>
+                </Card>
+              </>
+            ) : (
+              <>{item.focus}</>
+            )}
+          </Checkbox>
+        ))}
+      </div>
+    );
+  };
+
   const onSubmitToNotify = async (index: number) => {
     const canvas: any = document.getElementById("canvas");
     let canvasURL = canvas.toDataURL();
@@ -158,6 +239,7 @@ export default function CameraPage() {
     formData.append("com_on", `${comOn}`);
     formData.append("upload_at", uploadAt);
     formData.append("time", timeAt);
+    formData.append("accurency", accurency.toFixed(2));
 
     try {
       const response = await axios({
@@ -190,6 +272,15 @@ export default function CameraPage() {
     setLoadings((prevLoadings) => {
       const newLoadings = [...prevLoadings];
       newLoadings[index] = true;
+      Swal.fire({
+        title: "Wait a minute",
+        html: `wait for capture and drawing container`,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       return newLoadings;
     });
 
@@ -202,16 +293,19 @@ export default function CameraPage() {
       .then(async (dataUrl) => {
         var img = new Image();
         img.src = dataUrl;
-        // document.body.appendChild(img);
 
         setStatus(IMAGE_LOADED);
         setPerson(0); //FIXME find new ways to refactor
         setComOn(0);
 
-        let a = await getBase64Dimensions(dataUrl);
+        let dimentions = await getBase64Dimensions(img.src);
+
+        img.width = dimentions[0]; //width
+        img.height = dimentions[1]; //height
 
         onImageLoad(img);
-
+        setUploadAt(dateTimeFormat("date-thai"));
+        setTimeAt(dateTimeFormat("timenow"));
         setStatus(INFERENCE_COMPLETED);
       })
       .catch(function (error) {
@@ -241,6 +335,7 @@ export default function CameraPage() {
 
   const onDrop = (accepted: any) => {
     setStatus(IMAGE_LOADED);
+
     setPerson(0); //FIXME find new ways to refactor
     setComOn(0);
 
@@ -251,6 +346,9 @@ export default function CameraPage() {
 
     setUploadAt(dateTimeFormat("date-thai"));
     setTimeAt(dateTimeFormat("timenow"));
+
+    status === INFERENCE_COMPLETED &&
+      Swal.fire("Success!", "Capture Success !", "success");
   };
 
   const onImageLoad = (image: any) => {
@@ -265,6 +363,7 @@ export default function CameraPage() {
 
     drawImageOnCanvas(image, ctx, originalImageRect, scaledImageRect);
 
+    let allPredictionValue: number[] = [];
     // PREDICT <-
     model.detect(image).then((predictions: any) => {
       person = 0;
@@ -301,28 +400,18 @@ export default function CameraPage() {
         ctx.fillRect(x, y, labelWidth + 4, FONT_SIZE + 4);
         ctx.fillStyle = FONT_COLOR;
         ctx.fillText(label, x, y);
+
+        allPredictionValue.push(prediction.score);
+        const sum = allPredictionValue.reduce(
+          (partialSum, a) => partialSum + a,
+          0
+        );
+
+        let acc = (sum / allPredictionValue.length) * 100;
+        setAccurency(acc);
       });
     });
   };
-
-  const data: ReportsTable[] = [];
-
-  {
-    [...Array(20)].map((x, i) => {
-      i++;
-      data.push({
-        key: i,
-        id: i,
-        label: "70" + i,
-        status: "detected",
-        class: null,
-        date_time: "01/01/0001 12 am.",
-        subject: null,
-        person_count: null,
-        comon_count: null,
-      });
-    });
-  }
 
   return (
     <>
@@ -331,7 +420,7 @@ export default function CameraPage() {
           <Row gutter={18}>
             <Card
               hoverable={true}
-              title="Live Camera 703"
+              title={"Live Camera " + label}
               bordered={true}
               style={{
                 margin: 10,
@@ -343,20 +432,6 @@ export default function CameraPage() {
                 <VideoRender src={rtspCam} isControl={isControl} />
               </center>
             </Card>
-            <Card
-              hoverable={true}
-              title="Details Room 703"
-              bordered={true}
-              style={{
-                margin: 10,
-                width: "45%",
-                border: "1px solid #C0C0C0",
-              }}
-            >
-              27
-            </Card>
-          </Row>
-          <Row gutter={18}>
             <Card
               hoverable={true}
               title="Action"
@@ -403,10 +478,29 @@ export default function CameraPage() {
                       </Button>
                     )}
                   </Space>
+                  <div className="Dropzone-page">
+                    <MagicDropzone
+                      className="Dropzone"
+                      accept="image/jpeg, image/png, .jpg, .jpeg, .png"
+                      multiple={false}
+                      onDrop={onDrop}
+                    >
+                      {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
+                      {status === IMAGE_LOADED && "Detection in progress."}
+                      {status === INFERENCE_COMPLETED &&
+                        "Success detection....  "}
+                      <br />
+                      {status === INFERENCE_COMPLETED &&
+                        "If you want to change image."}
+                      <br />
+                      {status === INFERENCE_COMPLETED &&
+                        "Choose or drop a file."}
+                    </MagicDropzone>
+                  </div>
                 </Space>
 
                 <Col>
-                  <h1>Summary</h1>
+                  <Title level={4}>Summary</Title>
                   <p>
                     <b>Person: </b>
                     {person}
@@ -423,27 +517,11 @@ export default function CameraPage() {
                     <b>Time: </b>
                     {timeAt}
                   </p>
+                  <p>
+                    <b>Accurency: </b>
+                    {accurency}
+                  </p>
                 </Col>
-              </Col>
-            </Card>
-
-            <Card
-              hoverable={true}
-              title="Log Reports"
-              bordered={true}
-              style={{
-                margin: 10,
-                width: "45%",
-                border: "1px solid #C0C0C0",
-              }}
-            >
-              <Col>
-                <Table
-                  columns={camTable}
-                  dataSource={data}
-                  pagination={{ pageSize: 3 }}
-                  scroll={{}}
-                />
               </Col>
             </Card>
           </Row>
@@ -459,29 +537,30 @@ export default function CameraPage() {
                 width: "92%",
               }}
             >
-              <div className="Dropzone-page">
-                <MagicDropzone
-                  className="Dropzone"
-                  accept="image/jpeg, image/png, .jpg, .jpeg, .png"
-                  multiple={false}
-                  onDrop={onDrop}
-                >
-                  {status === WAITING_FOR_IMAGE && "Choose or drop a file."}
-                  {status === IMAGE_LOADED && "Detection in progress."}
-                  {status === INFERENCE_COMPLETED && "Success detection....  "}
-                  <br />
-                  {status === INFERENCE_COMPLETED &&
-                    "If you want to change image."}
-                  <br />
-                  {status === INFERENCE_COMPLETED && "Choose or drop a file."}
-                </MagicDropzone>
-              </div>
               <canvas
                 id="canvas"
                 style={{ width: "100%", height: "100%" }}
                 width="1920"
                 height="1080"
+                onClick={() => status === INFERENCE_COMPLETED && previewImage()}
               />
+            </Card>
+          </Row>
+
+          <Row gutter={18}>
+            <Card
+              hoverable={true}
+              title="Setting Time off AI Detection"
+              bordered={true}
+              style={{
+                border: "1px solid #C0C0C0",
+                margin: 10,
+                width: "92%",
+              }}
+            >
+              <Col span={2}>
+                <CheckboxComponent list={focusArea} />
+              </Col>
             </Card>
           </Row>
         </Col>

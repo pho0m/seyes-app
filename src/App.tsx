@@ -4,7 +4,6 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PieChartOutlined,
-  SettingOutlined,
   UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
@@ -52,8 +51,8 @@ export default function App() {
             },
             {
               key: "4",
-              icon: <SettingOutlined />,
-              label: <Link to="/settings">Settings</Link>,
+              icon: <UserOutlined />,
+              label: <Link to="/users">Users</Link>,
             },
             // {
             //   key: "5",

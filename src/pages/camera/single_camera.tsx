@@ -40,11 +40,11 @@ import {
   loadImage,
 } from "../../components/model";
 import VideoRender from "../../components/video";
-import { camTable, ReportsTable } from "../../components/interface";
 import "video.js/dist/video-js.css";
 import * as htmlToImage from "html-to-image";
 import { useLocation } from "react-router";
 import { RoomData } from "./index_camera";
+import Title from "antd/es/typography/Title";
 
 const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
 const weight = ["com_on", "person"];
@@ -152,21 +152,80 @@ export default function SigleCameraPage() {
       });
   }, []);
 
+  const [focusArea, setFocusArea] = useState([
+    { focus: "Monday", isAdded: false },
+    { focus: "Tursday", isAdded: false },
+    { focus: "Wednesday", isAdded: false },
+    { focus: "Thursday", isAdded: false },
+    { focus: "Friday", isAdded: false },
+    { focus: "Saturday", isAdded: false },
+    { focus: "Sunday", isAdded: false },
+  ]);
+
+  const handleOnChange = (event, option, index) => {
+    const values = [...focusArea];
+    values[index].isAdded = event.target.checked;
+    setFocusArea(values);
+  };
+
+  const CheckboxComponent = ({ list }) => {
+    return (
+      <div>
+        {list?.map((item: any, index: any) => (
+          <Checkbox
+            id={item.focus}
+            value={item.focus}
+            onChange={(e) => handleOnChange(e, item, index)}
+            checked={item.isAdded}
+            style={{ margin: 20 }}
+          >
+            {item.isAdded ? (
+              <>
+                {item.focus}
+
+                <Card
+                  title={item.focus + " setting close time"}
+                  hoverable={true}
+                  bordered={false}
+                  style={{
+                    width: 300,
+                    margin: 10,
+                    border: "1px solid #C0C0C0",
+                  }}
+                >
+                  <p>Morning (AM) 00:00 - 12:00</p>
+                  <TimePicker.RangePicker
+                    onChange={(v) => {
+                      console.log("onchange value:", v);
+                    }}
+                  />
+
+                  <p>Evening (PM) 12:00 - 23:00</p>
+                  <TimePicker.RangePicker
+                    onChange={(v) => {
+                      console.log("onchange value:", v);
+                    }}
+                  />
+
+                  <Button type="primary" style={{ marginTop: 10 }}>
+                    Submit
+                  </Button>
+                </Card>
+              </>
+            ) : (
+              <>{item.focus}</>
+            )}
+          </Checkbox>
+        ))}
+      </div>
+    );
+  };
+
   const onSubmitToNotify = async (index: number) => {
     const canvas: any = document.getElementById("canvas");
     let canvasURL = canvas.toDataURL();
     let file = dataURLtoFile(canvasURL, "photo");
     setNewImage(file);
-
-    // const [onmonday, setOnMonday] = useState(false);
-    // const onChangeMonday = (e: CheckboxChangeEvent) => {
-    //   console.log(`checked = ${e.target.checked}`);
-
-    //   const check = e.target.checked;
-    //   if (check == true) {
-    //     setOnMonday(true);
-    //   } else setOnMonday(false);
-    // };
 
     setLoadings((prevLoadings) => {
       const newLoadings = [...prevLoadings];
@@ -441,10 +500,7 @@ export default function SigleCameraPage() {
                 </Space>
 
                 <Col>
-                  <h1>
-                    Summary now accurency ---------
-                    <b>{accurency.toFixed(2)}%</b>
-                  </h1>
+                  <Title level={4}>Summary</Title>
                   <p>
                     <b>Person: </b>
                     {person}
@@ -460,6 +516,10 @@ export default function SigleCameraPage() {
                   <p>
                     <b>Time: </b>
                     {timeAt}
+                  </p>
+                  <p>
+                    <b>Accurency: </b>
+                    {accurency}
                   </p>
                 </Col>
               </Col>
@@ -486,44 +546,23 @@ export default function SigleCameraPage() {
               />
             </Card>
           </Row>
-          <Card
-            hoverable={true}
-            title="Setting Time off AI Detection"
-            bordered={true}
-            style={{
-              minHeight: "20vh",
-              minWidth: "50vh",
-              margin: 10,
-              border: "1px solid #C0C0C0",
-            }}
-          >
-            {/* <Checkbox onChange={onChangeMonday}>
-              Monday
-              {onmonday ? (
-                <>
-                  <Card
-                    title="Monday set trun off AI"
-                    hoverable={true}
-                    bordered={false}
-                    style={{
-                      height: 150,
-                      width: 300,
-                      margin: 10,
-                      border: "1px solid #C0C0C0",
-                    }}
-                  >
-                    <TimePicker.RangePicker
-                      onChange={(v) => {
-                        console.log("onchange value:", v);
-                      }}
-                    />
-                  </Card>
-                </>
-              ) : (
-                " Set Time off"
-              )}
-            </Checkbox> */}
-          </Card>
+
+          <Row gutter={18}>
+            <Card
+              hoverable={true}
+              title="Setting Time off AI Detection"
+              bordered={true}
+              style={{
+                border: "1px solid #C0C0C0",
+                margin: 10,
+                width: "92%",
+              }}
+            >
+              <Col span={2}>
+                <CheckboxComponent list={focusArea} />
+              </Col>
+            </Card>
+          </Row>
         </Col>
       </div>
     </>

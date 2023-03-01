@@ -39,6 +39,8 @@ import * as htmlToImage from "html-to-image";
 import { useLocation } from "react-router";
 import { RoomData } from "./index_camera";
 import Title from "antd/es/typography/Title";
+import { useCountdown } from "../../components/countdown";
+import DateTimeDisplay from "../../components/datetime_display";
 
 const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
 const weight = ["com_on", "person"];
@@ -98,6 +100,11 @@ export default function SigleCameraPage() {
 
   const [activeSchedule, setActiveSchedule] = useState(false);
 
+  const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
+  const NOW_IN_MS = new Date().getTime();
+
+  const dateTimeAfterThreeDays = NOW_IN_MS + THREE_DAYS_IN_MS;
+
   const rd: RoomData = roomData;
   const rtspCam = rd.cam_url;
   const label = rd.label;
@@ -147,12 +154,60 @@ export default function SigleCameraPage() {
         });
       });
 
-    isControl &&
-      setInterval(() => {
-        enterCapture(0);
-        onSubmitToNotify(1);
-      }, 30000); //5 min;
+    // console.log(isControl);
+
+    // isControl && autoDetect();
   }, []);
+
+  const autoDetect = () => {
+    setInterval(() => {
+      enterCapture(0);
+      setTimeout(() => {
+        Swal.fire("Loading!", "", "success");
+        onSubmitToNotify(1);
+      }, 2000);
+    }, 30000); //1 min;
+  };
+
+  const CountdownTimer = ({ targetDate }) => {
+    const [days, hours, minutes, seconds] = useCountdown(targetDate);
+
+    if (days + hours + minutes + seconds <= 0) {
+      return <ExpiredNotice />;
+    } else {
+      return (
+        <ShowCounter
+          days={days}
+          hours={hours}
+          minutes={minutes}
+          seconds={seconds}
+        />
+      );
+    }
+  };
+
+  const ShowCounter = ({ days, hours, minutes, seconds }) => {
+    return (
+      <div className="show-counter">
+        <DateTimeDisplay value={days} type={"Days"} isDanger={days <= 3} />
+        <p>:</p>
+        <DateTimeDisplay value={hours} type={"Hours"} isDanger={false} />
+        <p>:</p>
+        <DateTimeDisplay value={minutes} type={"Mins"} isDanger={false} />
+        <p>:</p>
+        <DateTimeDisplay value={seconds} type={"Seconds"} isDanger={false} />
+      </div>
+    );
+  };
+
+  const ExpiredNotice = () => {
+    return (
+      <div className="expired-notice">
+        <span>Expired!!!</span>
+        <p>Please select a future date and time.</p>
+      </div>
+    );
+  };
 
   const [focusArea, setFocusArea] = useState([
     { focus: "Monday", isAdded: false },
@@ -228,16 +283,25 @@ export default function SigleCameraPage() {
   };
 
   const onSubmitToNotify = async (index: number) => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      Swal.fire({
+        title: "Wait a minute",
+        html: `preparing to notify`,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+      return newLoadings;
+    });
+
     const canvas: any = document.getElementById("canvas");
     let canvasURL = canvas.toDataURL();
     let file = dataURLtoFile(canvasURL, "photo");
     setNewImage(file);
-
-    setLoadings((prevLoadings) => {
-      const newLoadings = [...prevLoadings];
-      newLoadings[index] = true;
-      return newLoadings;
-    });
 
     const formData = new FormData();
     formData.append("photo", file);
@@ -440,7 +504,7 @@ export default function SigleCameraPage() {
             </Card>
             <Card
               hoverable={true}
-              title="Action"
+              title={"Action"}
               bordered={true}
               style={{
                 margin: 10,
@@ -525,7 +589,7 @@ export default function SigleCameraPage() {
                   </p>
                   <p>
                     <b>Accurency: </b>
-                    {accurency}
+                    {accurency.toFixed(2)}
                   </p>
                 </Col>
               </Col>

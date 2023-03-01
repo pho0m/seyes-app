@@ -41,7 +41,8 @@ export default function UserPage() {
       key: "action",
       render: () => (
         <Space size="middle">
-          <Link to="/singleuser">
+          <Link to={{ pathname: `/users/1` }}>
+            {/* FIXME */}
             <Button type="primary">Edit User</Button>
           </Link>
         </Space>

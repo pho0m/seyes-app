@@ -14,7 +14,7 @@ export default function Router() {
       <Route path="/cameras" element={<IndexCameraPage />} />
       <Route path="/cameras/:id" element={<SingleCameraPage />} />
       <Route path="/reports" element={<ReportPage />} />
-      {/* <Route path="/reports/:id" element={<SingleReportPage />} /> //*FIXME*/}
+      {/* <Route path="/reports/:id" element={<SingleReportPage />} /> //*FIXME */}
       <Route path="/users" element={<IndexUserPage />} />
       <Route path="/users/:id" element={<SingleUserPage />} />
     </Routes>

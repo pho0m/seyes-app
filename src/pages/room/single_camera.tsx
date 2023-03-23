@@ -19,7 +19,6 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import MagicDropzone from "react-magic-dropzone";
 import Swal from "sweetalert2";
-import { load } from "yolov5js"; //YOLO_V5_N_COCO_MODEL_CONFIG
 import {
   dataURLtoFile,
   dateTimeFormat,
@@ -42,6 +41,8 @@ import Title from "antd/es/typography/Title";
 import { useCountdown } from "../../components/countdown";
 import DateTimeDisplay from "../../components/datetime_display";
 import { CheckboxComponent } from "../../components/checkbox";
+import { useAsync } from "react-use";
+import { GetAllReport } from "../../api/report";
 
 const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
 const weight = ["com_on", "person"];
@@ -98,56 +99,13 @@ export default function SigleCameraPage() {
   const [loadingPage, setLoadingPage] = useState(true);
   const [isControl, setIsControl] = useState(false);
   const [accurency, setAccurency] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [resdata, setResdata] = useState() as any;
+  const [resImage, setImage] = useState() as any;
 
   const rd: RoomData = roomData;
   const rtspCam = rd.cam_url;
   const label = rd.label;
-
-  //Loading model
-  useEffect(() => {
-    let timerInterval: any;
-
-    loadingPage &&
-      Swal.fire({
-        title: "Wait a minute",
-        html: `I will close in milliseconds.`,
-        timer: loadingPage ? 5000 : 0,
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-
-          timerInterval = setInterval(() => {
-            Swal.getTimerLeft();
-          }, 100);
-        },
-        willClose: () => {
-          clearInterval(timerInterval);
-        },
-      });
-
-    load(config)
-      .then((model: any) => {
-        setModel(model);
-        setLoadingPage(false);
-        Swal.fire({
-          icon: "success",
-          title: "Model loaded",
-          text: "Ready for rock",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        setLoadingPage(true);
-      })
-      .catch((error) => {
-        setLoadingPage(false);
-        Swal.fire({
-          icon: "error",
-          title: "Error Something went wrong!",
-          text: error,
-        });
-      });
-  }, []);
 
   const autoDetect = () => {
     console.log();
@@ -239,63 +197,60 @@ export default function SigleCameraPage() {
   };
 
   const enterCapture = async (index: number) => {
-    setLoadings((prevLoadings) => {
-      const newLoadings = [...prevLoadings];
-      newLoadings[index] = true;
+    // const response = GetAllReport();
+    // console.log(response);
+
+    setLoading(true);
+
+    try {
+      const response = await axios({
+        method: "GET",
+        url: "http://202.44.35.76:9091/api/detect/c319f57f-6db1-4ada-9ca4-f0fdb38c13f2/channel/0",
+      });
+
+      if (response.status === 200) {
+        setResdata(response.data);
+        setImage(resImage);
+      }
+    } catch (err) {
       Swal.fire({
-        title: "Wait a minute",
-        html: `wait for capture and drawing container`,
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
+        icon: "error",
+        title: "Error Something went wrong!",
+        text: "can't send data",
       });
-      return newLoadings;
-    });
+    }
 
-    const videoElement: any = document.getElementById(
-      "videos"
-    ) as HTMLImageElement;
-
-    htmlToImage
-      .toPng(videoElement)
-      .then(async (dataUrl) => {
-        var img = new Image();
-        img.src = dataUrl;
-
-        setStatus(IMAGE_LOADED);
-        setPerson(0); //FIXME find new ways to refactor
-        setComOn(0);
-
-        let dimentions = await getBase64Dimensions(img.src);
-
-        img.width = dimentions[0]; //width
-        img.height = dimentions[1]; //height
-
-        onImageLoad(img);
-        setUploadAt(dateTimeFormat("date-thai"));
-        setTimeAt(dateTimeFormat("timenow"));
-        setStatus(INFERENCE_COMPLETED);
-      })
-      .catch(function (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Error Something went wrong!",
-          text: error,
-        });
-      });
-
-    setTimeout(() => {
-      setLoadings((prevLoadings) => {
-        const newLoadings = [...prevLoadings];
-        newLoadings[index] = false;
-        Swal.fire("Success!", "Capture Success !", "success");
-
-        return newLoadings;
-      });
-    }, 5000);
+    console.log(resdata.data);
   };
+
+  const tp = useAsync(async () => {
+    setLoading(true);
+
+    try {
+      const response = await axios({
+        method: "GET",
+        url: "http://202.44.35.76:9091/api/detect/c319f57f-6db1-4ada-9ca4-f0fdb38c13f2/channel/0",
+      });
+
+      if (response.status === 200) {
+        setResdata(response.data);
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Error Something went wrong!",
+        text: "can't send data",
+      });
+    }
+
+    console.log(resdata);
+  }, []);
+
+  if (tp.loading) {
+    return <>Loading</>; //for loading
+  }
+
+  console.log(resdata.image);
 
   const onDrop = (accepted: any) => {
     setStatus(IMAGE_LOADED);
@@ -505,13 +460,14 @@ export default function SigleCameraPage() {
                 width: "92%",
               }}
             >
-              <canvas
+              <img src={resImage} width="100%" alt="image 702" />
+              {/* <canvas
                 id="canvas"
                 style={{ width: "100%", height: "100%" }}
                 width="1920"
                 height="1080"
                 onClick={() => status === INFERENCE_COMPLETED && previewImage()}
-              />
+              /> */}
             </Card>
           </Row>
 

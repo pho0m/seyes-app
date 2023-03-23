@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import {
+  AppstoreAddOutlined,
   AuditOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PieChartOutlined,
+  SettingOutlined,
   UserOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
@@ -41,24 +43,33 @@ export default function App() {
             },
             {
               key: "2",
-              icon: <VideoCameraOutlined />,
-              label: <Link to="/cameras">Cameras</Link>,
+              icon: <AppstoreAddOutlined />,
+              label: <Link to="/rooms">Rooms</Link>,
             },
             {
               key: "3",
+              icon: <VideoCameraOutlined />,
+              label: (
+                <Link to="http://202.44.35.76:9093/pages/multiview/full?controls">
+                  Camera
+                </Link>
+              ),
+            },
+            {
+              key: "4",
               icon: <AuditOutlined />,
               label: <Link to="/reports">Reports</Link>,
             },
             {
-              key: "4",
+              key: "5",
               icon: <UserOutlined />,
               label: <Link to="/users">Users</Link>,
             },
-            // {
-            //   key: "5",
-            //   icon: <UserOutlined />,
-            //   label: <Link to="/users">Users</Link>,
-            // },
+            {
+              key: "6",
+              icon: <SettingOutlined />,
+              label: <Link to="/settings">Setting</Link>,
+            },
           ]}
         />
       </Sider>

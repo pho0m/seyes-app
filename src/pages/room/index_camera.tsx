@@ -21,17 +21,17 @@ export default function IndexCameraPage() {
       label: "702",
       cam_url:
         env.VITE_RTSP_URL +
-        "/stream/27aec28e-6181-4753-9acd-0456a75f0289/channel/0/hlsll/live/index.m3u8",
+        "/stream/c319f57f-6db1-4ada-9ca4-f0fdb38c13f2/channel/0/hlsll/live/index.m3u8",
     },
 
     // http://202.44.35.76:9093/stream/27aec28e-6181-4753-9acd-0456a75f0289/channel/0/hlsll/live/index.m3u8
 
     {
       id: 1,
-      label: "703",
+      label: "709",
       cam_url:
         env.VITE_RTSP_URL +
-        "/stream/aefc49f7-e29b-4a84-bd42-7ba08e51f16d/channel/0/hls/live/index.m3u8",
+        "/stream/27aec28e-6181-4753-9acd-0456a75f0289/channel/0/hls/live/index.m3u8",
     },
     // {
     //   id: 2,

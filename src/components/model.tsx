@@ -1,3 +1,11 @@
+import Swal from "sweetalert2";
+import * as htmlToImage from "html-to-image";
+import { dateTimeFormat } from "./helper";
+
+export const WAITING_FOR_IMAGE = 0;
+export const IMAGE_LOADED = 1;
+export const INFERENCE_COMPLETED = 2;
+
 export const drawImageOnCanvas = (
   image: any,
   ctx: any,
@@ -71,3 +79,71 @@ export async function getBase64Dimensions(src: string) {
     image.onerror = () => reject();
   });
 }
+
+export const enterCapture = async ({
+  index,
+  setLoadings,
+  setStatus,
+  setPerson,
+  setComOn,
+  setUploadAt,
+  onImageLoad,
+  setTimeAt,
+}) => {
+  setLoadings((prevLoadings) => {
+    const newLoadings = [...prevLoadings];
+    newLoadings[index] = true;
+    Swal.fire({
+      title: "Wait a minute",
+      html: `wait for capture and drawing container`,
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+    return newLoadings;
+  });
+
+  const videoElement: any = document.getElementById(
+    "videos"
+  ) as HTMLImageElement;
+
+  htmlToImage
+    .toPng(videoElement)
+    .then(async (dataUrl) => {
+      var img = new Image();
+      img.src = dataUrl;
+
+      setStatus(IMAGE_LOADED);
+      setPerson(0); //FIXME find new ways to refactor
+      setComOn(0);
+
+      let dimentions = await getBase64Dimensions(img.src);
+
+      img.width = dimentions[0]; //width
+      img.height = dimentions[1]; //height
+
+      onImageLoad(img);
+      setUploadAt(dateTimeFormat("date-thai"));
+      setTimeAt(dateTimeFormat("timenow"));
+      setStatus(INFERENCE_COMPLETED);
+    })
+    .catch(function (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error Something went wrong!",
+        text: error,
+      });
+    });
+
+  setTimeout(() => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = false;
+      Swal.fire("Success!", "Capture Success !", "success");
+
+      return newLoadings;
+    });
+  }, 5000);
+};

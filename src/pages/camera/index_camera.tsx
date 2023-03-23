@@ -21,8 +21,11 @@ export default function IndexCameraPage() {
       label: "702",
       cam_url:
         env.VITE_RTSP_URL +
-        "/stream/b2bbf1e0-32df-4129-8301-5ff089ba36ae/channel/0/hls/live/index.m3u8",
+        "/stream/27aec28e-6181-4753-9acd-0456a75f0289/channel/0/hlsll/live/index.m3u8",
     },
+
+    // http://202.44.35.76:9093/stream/27aec28e-6181-4753-9acd-0456a75f0289/channel/0/hlsll/live/index.m3u8
+
     {
       id: 1,
       label: "703",

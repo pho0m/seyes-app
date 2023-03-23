@@ -41,6 +41,7 @@ import { RoomData } from "./index_camera";
 import Title from "antd/es/typography/Title";
 import { useCountdown } from "../../components/countdown";
 import DateTimeDisplay from "../../components/datetime_display";
+import { CheckboxComponent } from "../../components/checkbox";
 
 const MY_MODEL: any = "../../src/static/assets/web_model/model.json";
 const weight = ["com_on", "person"];
@@ -146,21 +147,23 @@ export default function SigleCameraPage() {
           text: error,
         });
       });
-
-    // console.log(isControl);
-
-    // isControl &&
-    autoDetect();
   }, []);
 
   const autoDetect = () => {
+    console.log();
+
     setInterval(() => {
       enterCapture(0);
       setTimeout(() => {
-        Swal.fire("Loading!", "", "success");
         onSubmitToNotify(1);
-      }, 2000);
-    }, 30000); //1 min;
+        Swal.fire({
+          icon: "success",
+          title: "Loadeded",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+      }, 20000);
+    }, 60000); //1 min;
   };
 
   const [focusArea, setFocusArea] = useState([
@@ -177,63 +180,6 @@ export default function SigleCameraPage() {
     const values = [...focusArea];
     values[index].isAdded = event.target.checked;
     setFocusArea(values);
-  };
-
-  const CheckboxComponent = ({ list }) => {
-    const format = "HH:mm";
-
-    return (
-      <div>
-        {list?.map((item: any, index: any) => (
-          <Checkbox
-            id={item.focus}
-            value={item.focus}
-            onChange={(e) => handleOnChange(e, item, index)}
-            checked={item.isAdded}
-            style={{ margin: 20 }}
-          >
-            {item.isAdded ? (
-              <>
-                {item.focus}
-
-                <Card
-                  title={item.focus + " setting close time"}
-                  hoverable={true}
-                  bordered={false}
-                  style={{
-                    width: 300,
-                    margin: 10,
-                    border: "1px solid #C0C0C0",
-                  }}
-                >
-                  <p>Morning (AM) 00:00 - 12:00</p>
-                  <TimePicker.RangePicker
-                    format={format}
-                    onChange={(v) => {
-                      console.log("onchange value:", v);
-                    }}
-                  />
-
-                  <p>Evening (PM) 12:00 - 23:00</p>
-                  <TimePicker.RangePicker
-                    format={format}
-                    onChange={(v) => {
-                      console.log("onchange value:", v);
-                    }}
-                  />
-
-                  <Button type="primary" style={{ marginTop: 10 }}>
-                    Submit
-                  </Button>
-                </Card>
-              </>
-            ) : (
-              <>{item.focus}</>
-            )}
-          </Checkbox>
-        ))}
-      </div>
-    );
   };
 
   const onSubmitToNotify = async (index: number) => {
@@ -338,12 +284,6 @@ export default function SigleCameraPage() {
           title: "Error Something went wrong!",
           text: error,
         });
-
-        // Swal.fire({
-        //   imageUrl: "https://placeholder.pics/svg/300x1500",
-        //   imageHeight: 1500,
-        //   imageAlt: "A tall image",
-        // });
       });
 
     setTimeout(() => {
@@ -474,6 +414,10 @@ export default function SigleCameraPage() {
                       unCheckedChildren="Inactive Control Video"
                       onChange={(v: boolean) => {
                         setIsControl(v);
+
+                        if (v) {
+                          autoDetect();
+                        }
                       }}
                     />
                     <Button
@@ -583,7 +527,10 @@ export default function SigleCameraPage() {
               }}
             >
               <Col span={2}>
-                <CheckboxComponent list={focusArea} />
+                <CheckboxComponent
+                  list={focusArea}
+                  handleOnChange={handleOnChange}
+                />
               </Col>
             </Card>
           </Row>

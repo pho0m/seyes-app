@@ -1,103 +1,164 @@
-import { TimePicker } from "antd";
-import { ClockCircleOutlined } from "@ant-design/icons";
-
-import { Checkbox, Button, Card } from "antd";
-import type { CheckboxChangeEvent } from "antd/es/checkbox";
-import { useState } from "react";
-
-interface timeparam {
-  starttime: string;
-  duetime: string;
-  section: string;
-}
+import { Input, Button, Card, List, Form } from "antd";
+import axios from "axios";
+import { Link } from "react-router-dom";
+import { GetSetting } from "../../api/setting";
+import React, { useState, useEffect } from "react";
 
 export default function SettingsPage() {
-  const [onmonday, setOnMonday] = useState(false);
-  const [timeam, SetTimeam] = useState({} as timeparam);
-  const [timepm, SetTimepm] = useState({} as timeparam);
-  const onChangeMonday = (e: CheckboxChangeEvent) => {
-    console.log(`checked = ${e.target.checked}`);
+  const [loading, setLoading] = useState(false);
+  const [resdata, setResdata] = useState() as any;
+  const [onedit, setOnEdit] = useState(true);
 
-    const check = e.target.checked;
-    if (check == true) {
-      setOnMonday(true);
-    } else setOnMonday(false);
+  useEffect(() => {
+    (async () => {
+      const res = await GetSetting();
+      setResdata(res);
+    })();
+  }, [onedit]);
+
+  if (!resdata) {
+    return <>Loading</>; //for loading
+  }
+
+  const onMenuClick = (e: boolean) => {
+    setOnEdit(e);
+    console.log("edit", onedit);
   };
 
-  //checked
-
-  const time = (t: any, section: string) => {
-    let starttime = "";
-    let duetime = "";
-
-    starttime = `${t[0].$H}` + `${t[0].$m}`;
-    duetime = t[1].$H;
-
-    let ti: timeparam = {
-      starttime: starttime,
-      duetime: duetime,
-      section: section,
-    };
-
-    if (section == "am") {
-      SetTimeam(ti);
-    } else SetTimepm(ti);
-
-    console.log(t[0].$H, t[0].$m);
-    console.log("section", section);
-    console.log("starttime", starttime);
-    console.log("duetime", duetime);
+  const onFinish = async (values: any) => {
+    const res = await axios({
+      method: "put",
+      url: "http://202.44.35.76:9091/api/settings/edit/1",
+      data: {
+        cronjob_time: values.cronjobtime,
+        notify_access_token: values.notifyaccesstoken,
+      },
+    });
+    setOnEdit(true);
   };
 
-  const format = "HH:mm";
+  const onFinishFailed = (errorInfo: any) => {
+    console.log("Failed:", errorInfo);
+  };
+
   return (
     <>
-      <Card
-        title="Monday set trun off AI"
-        hoverable={true}
-        bordered={false}
-        style={{
-          minHeight: "20vh",
-          minWidth: "37vh",
-          margin: 10,
-          border: "1px solid #C0C0C0",
-        }}
-      >
-        <Checkbox onChange={onChangeMonday}>
-          Monday
-          {onmonday ? (
-            <>
-              <TimePicker.RangePicker
-                format={format}
-                minuteStep={60}
-                onChange={(v) => {
-                  time(v, "am");
-                }}
-              />
-              <TimePicker.RangePicker
-                format={format}
-                minuteStep={15}
-                onChange={(v) => {
-                  time(v, "pm");
-                }}
-              />
-            </>
-          ) : (
-            " Set Time off"
-          )}
-        </Checkbox>
+      {onedit ? (
         <>
-          <h4>Morning</h4>
-          <>starttime : {timeam.starttime}</>
-          <>duetime : {timeam.duetime}</>
-          <h4>Evening</h4>
-          <>starttime : {timepm.starttime}</>
-          <>
-            <ClockCircleOutlined />
-            duetime : {timepm.duetime}
-          </>
+          <Button
+            type="primary"
+            style={{
+              margin: 10,
+              border: "1px solid #C0C0C0",
+            }}
+            onClick={() => onMenuClick(false)}
+          >
+            Edit Setting
+          </Button>
+
+          <Card
+            title="Setting Detail"
+            hoverable={true}
+            bordered={false}
+            style={{
+              minHeight: "20vh",
+              minWidth: "37vh",
+              margin: 10,
+              border: "1px solid #C0C0C0",
+            }}
+          >
+            <List>
+              <List.Item>
+                <List.Item.Meta
+                  title="Cronjob Time"
+                  description={resdata.cronjob_time}
+                />
+              </List.Item>
+              <List.Item>
+                <List.Item.Meta
+                  title="Notify Access Token"
+                  description={resdata.notify_access_token}
+                />
+              </List.Item>
+              <List.Item>
+                <List.Item.Meta
+                  title="Update At"
+                  description={resdata.update_at}
+                />
+              </List.Item>
+            </List>
+          </Card>
         </>
-      </Card>
+      ) : (
+        <>
+          <Button
+            style={{
+              margin: 10,
+              color: "white",
+              backgroundColor: "red",
+              border: "1px solid #C0C0C0",
+            }}
+            onClick={() => onMenuClick(true)}
+          >
+            Cancel
+          </Button>
+
+          <Card
+            title="Setting Detail"
+            hoverable={true}
+            bordered={false}
+            style={{
+              minHeight: "20vh",
+              minWidth: "37vh",
+              margin: 10,
+              border: "1px solid #C0C0C0",
+            }}
+          >
+            <Form
+              name="basic"
+              labelCol={{ span: 8 }}
+              wrapperCol={{ span: 16 }}
+              style={{ maxWidth: 600 }}
+              initialValues={{ remember: true }}
+              onFinish={onFinish}
+              onFinishFailed={onFinishFailed}
+              autoComplete="off"
+            >
+              <Form.Item
+                label="Cronjob Time"
+                name="cronjobtime"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your Cronjob Time!",
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item
+                label="Notify Access Token"
+                name="notifyaccesstoken"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your Notify Access Token!",
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+                <Button type="primary" htmlType="submit">
+                  Submit
+                </Button>
+              </Form.Item>
+            </Form>
+          </Card>
+        </>
+      )}
     </>
   );
 }

@@ -6,6 +6,7 @@ import ReportPage from "./pages/report/report";
 import IndexUserPage from "./pages/users/index_user";
 import SingleUserPage from "./pages/users/single_user";
 import SettingsPage from "./pages/setting/setting";
+import SigleReport from "./pages/report/single_report";
 
 export default function Router() {
   return (
@@ -15,6 +16,7 @@ export default function Router() {
       <Route path="/rooms" element={<IndexCameraPage />} />
       <Route path="/cameras/:id" element={<SingleCameraPage />} />
       <Route path="/reports" element={<ReportPage />} />
+      <Route path="/reports/:id" element={<SigleReport />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/users" element={<IndexUserPage />} />
       <Route path="/users/:id" element={<SingleUserPage />} />

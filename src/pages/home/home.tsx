@@ -61,7 +61,7 @@ export default function HomePage() {
             style={{ height: height, width: width, margin: margin }}
           >
             <center>
-              <Title level={1}>reportdata</Title>
+              <Title level={1}>99</Title>
             </center>
           </Card>
           <Card

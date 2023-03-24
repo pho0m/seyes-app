@@ -1,36 +1,33 @@
 // @ts-ignore
 
 import { Button, Card, Col, Row, Space, Switch } from "antd";
-import { FireOutlined, CameraOutlined } from "@ant-design/icons";
+import { CameraOutlined } from "@ant-design/icons";
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
-import { dataURLtoFile, env } from "../../components/helper";
 import VideoRender from "../../components/video";
 import "video.js/dist/video-js.css";
 import { useLocation } from "react-router";
 import { RoomData } from "./index_camera";
 import Title from "antd/es/typography/Title";
-import { useAsync } from "react-use";
-import { GetAllReport } from "../../api/report";
 import { CheckboxComponent } from "../../components/checkbox";
 
 export default function SigleCameraPage() {
   const location = useLocation();
   const { roomData } = location.state;
-  let [person, setPerson] = useState(0);
-  let [comOn, setComOn] = useState(0);
-  const [uploadAt, setUploadAt] = useState("no data");
-  const [timeAt, setTimeAt] = useState("no data");
-  const [newImage, setNewImage] = useState<any>();
   const [loadings, setLoadings] = useState<boolean[]>([]);
-  const [loadingPage, setLoadingPage] = useState(true);
+  const [loadingPage, setLoadingPage] = useState(false);
   const [isControl, setIsControl] = useState(false);
-  const [accurency, setAccurency] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [resdata, setResdata] = useState() as any;
-  const [resdatac, setResdatac] = useState() as any;
-  const [resImage, setImage] = useState() as any;
+  const [resdatect, setResdatect] = useState() as any;
+
+  /////////////detect defualt //////////////////
+
+  const [person, setPerson] = useState(0);
+  const [comOn, setComOn] = useState(0);
+  const [accurency, setAccurency] = useState(0.0);
+  const [repordate, setReportData] = useState("");
+  const [reportime, setReportTime] = useState("");
+  const [imgdectect, setImgDetect] = useState("");
 
   const rd: RoomData = roomData;
   const rtspCam = rd.cam_url;
@@ -52,85 +49,41 @@ export default function SigleCameraPage() {
     setFocusArea(values);
   };
 
-  const onSubmitToNotify = async (index: number) => {
-    setLoadings((prevLoadings) => {
-      const newLoadings = [...prevLoadings];
-      newLoadings[index] = true;
-      Swal.fire({
-        title: "Wait a minute",
-        html: `preparing to notify`,
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
-      });
-      return newLoadings;
-    });
-
-    const canvas: any = document.getElementById("canvas");
-    let canvasURL = canvas.toDataURL();
-    let file = dataURLtoFile(canvasURL, "photo");
-    setNewImage(file);
-
-    const formData = new FormData();
-    formData.append("photo", file);
-    formData.append("person", `${person}`);
-    formData.append("com_on", `${comOn}`);
-    formData.append("upload_at", uploadAt);
-    formData.append("time", timeAt);
-    formData.append("accurency", accurency.toFixed(2));
-
-    try {
-      const response = await axios({
-        method: "POST",
-        data: formData,
-        headers: { "Content-Type": "multipart/form-data" },
-        url: env.VITE_BASE_URL + "/notify",
-      });
-
-      if (response.status === 200) {
-        setTimeout(() => {
-          setLoadings((prevLoadings_1) => {
-            const newLoadings_1 = [...prevLoadings_1];
-            newLoadings_1[index] = false;
-            return newLoadings_1;
-          });
-          Swal.fire("Success!", "data have been send!", "success");
-        }, 2000);
+  const enterCapture = () => {
+    setLoadingPage(true);
+    (async () => {
+      try {
+        const response = await axios({
+          method: "GET",
+          url: `http://202.44.35.76:9091/api/detect/${rd.id}`,
+        });
+        setLoadingPage(false);
+        if (response.status === 200) {
+          setResdatect(response.data);
+          setPerson(resdatect.person_count);
+          setComOn(resdatect.com_on_count);
+          setReportData(resdatect.report_date);
+          setReportTime(resdatect.report_time);
+          setAccurency(resdatect.accurency);
+          setImgDetect(resdatect.iamge);
+        }
+      } catch (err) {
+        // Swal.fire({
+        //   icon: "error",
+        //   title: "Error Something went wrong!",
+        //   text: `${err}`,
+        // });
+        return;
       }
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error Something went wrong!",
-        text: "can't send data",
-      });
-    }
+    })();
+    [];
   };
 
-  const enterCapture = async (index: number) => {
-    setLoading(true);
+  if (loadingPage) {
+    return <>Loading</>;
+  }
 
-    try {
-      const response = await axios({
-        method: "GET",
-        url: "http://202.44.35.76:9091/api/detect/c319f57f-6db1-4ada-9ca4-f0fdb38c13f2/channel/0",
-      });
-
-      if (response.status === 200) {
-        setResdatac(response.data);
-        setImage(resdatac.image);
-      }
-    } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Error Something went wrong!",
-        text: "can't send data",
-      });
-    }
-  };
-
-  console.log("rdddcccc", resdatac);
+  console.log("rdddcccc", resdatect);
 
   return (
     <>
@@ -164,29 +117,14 @@ export default function SigleCameraPage() {
               <Col>
                 <Space wrap>
                   <Space direction="vertical">
-                    <Switch
-                      checkedChildren="Active Control Video"
-                      unCheckedChildren="Inactive Control Video"
-                    />
                     <Button
                       type="primary"
                       icon={<CameraOutlined />}
                       style={{ marginRight: 10 }}
                       loading={loadings[0]}
-                      onClick={() => enterCapture(0)}
+                      onClick={() => enterCapture()}
                     >
                       Capture
-                    </Button>
-
-                    <Button
-                      type="primary"
-                      icon={<FireOutlined />}
-                      loading={loadings[1]}
-                      onClick={() => {
-                        onSubmitToNotify(1);
-                      }}
-                    >
-                      Send To Line Notify
                     </Button>
                   </Space>
                 </Space>
@@ -194,18 +132,23 @@ export default function SigleCameraPage() {
                   <Title level={4}>Summary</Title>
                   <p>
                     <b>Person: </b>
+                    {person}
                   </p>
                   <p>
                     <b>Com On: </b>
+                    {comOn}
                   </p>
                   <p>
                     <b>Upload At: </b>
+                    {repordate}
                   </p>
                   <p>
                     <b>Time: </b>
+                    {reportime}
                   </p>
                   <p>
                     <b>Accurency: </b>
+                    {accurency}
                   </p>
                 </Col>
               </Col>
@@ -223,7 +166,11 @@ export default function SigleCameraPage() {
                 width: "92%",
               }}
             >
-              <img src={resImage} width="100%" alt="image 702" />
+              <img
+                src={imgdectect}
+                width="100%"
+                alt="image 702 not detection"
+              />
             </Card>
           </Row>
 

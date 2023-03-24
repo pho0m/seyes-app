@@ -3,8 +3,9 @@ import Title from "antd/es/typography/Title";
 import { Link } from "react-router-dom";
 import { env } from "../../components/helper";
 import VideoRender from "../../components/video";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { GetRoom } from "../../api/room";
 
 const width = "100%";
 const height = "100%";
@@ -19,26 +20,49 @@ export interface RoomData {
 //FIXME make dynamic function
 export default function IndexCameraPage() {
   const [createroom, setCreateRoom] = useState(true);
+  const roomdata: RoomData[] = [];
+  const [resdata, setResdata] = useState() as any;
 
-  let cameraBoxsData: RoomData[] = [
-    {
-      id: 1,
-      label: "702",
-      cam_url:
-        env.VITE_RTSP_URL +
-        "/stream/c319f57f-6db1-4ada-9ca4-f0fdb38c13f2/channel/0/hlsll/live/index.m3u8",
-      uuid_cam: "c319f57f-6db1-4ada-9ca4-f0fdb38c13f2",
-    },
+  // let cameraBoxsData: RoomData[] = [
+  //   {
+  //     id: 1,
+  //     label: "702",
+  //     cam_url:
+  //       env.VITE_RTSP_URL +
+  //       "/stream/c319f57f-6db1-4ada-9ca4-f0fdb38c13f2/channel/0/hlsll/live/index.m3u8",
+  //     uuid_cam: "c319f57f-6db1-4ada-9ca4-f0fdb38c13f2",
+  //   },
 
-    {
-      id: 2,
-      label: "709",
-      cam_url:
-        env.VITE_RTSP_URL +
-        "/stream/27aec28e-6181-4753-9acd-0456a75f0289/channel/0/hls/live/index.m3u8",
-      uuid_cam: "27aec28e-6181-4753-9acd-0456a75f0289",
-    },
-  ];
+  //   {
+  //     id: 2,
+  //     label: "709",
+  //     cam_url:
+  //       env.VITE_RTSP_URL +
+  //       "/stream/27aec28e-6181-4753-9acd-0456a75f0289/channel/0/hls/live/index.m3u8",
+  //     uuid_cam: "27aec28e-6181-4753-9acd-0456a75f0289",
+  //   },
+  // ];
+
+  useEffect(() => {
+    (async () => {
+      const res = await GetRoom();
+      setResdata(res);
+      console.log("room", res);
+    })();
+  }, [createroom]);
+
+  if (!resdata) {
+    return <>Loading</>; //for loading
+  }
+
+  let reportdata = resdata.items.map((v) => {
+    roomdata.push({
+      id: v.id,
+      label: v.label,
+      cam_url: v.cam_url,
+      uuid_cam: v.uuid_cam,
+    });
+  });
 
   const CamBox = ({ values }) => (
     <>
@@ -106,7 +130,7 @@ export default function IndexCameraPage() {
             Create Room
           </Button>
           <Row>
-            <CamBox values={cameraBoxsData} />
+            <CamBox values={roomdata} />
           </Row>
         </>
       ) : (

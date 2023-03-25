@@ -42,7 +42,7 @@ export default function ReportPage() {
 
   return (
     <>
-      <Col span={20}>
+      <Col>
         <Table columns={reportPageTables} dataSource={data} />
       </Col>
     </>

@@ -13,6 +13,9 @@ import { Avatar, Image, Layout, Menu, theme } from "antd";
 import { Link } from "react-router-dom";
 import Router from "./router";
 import Title from "antd/es/typography/Title";
+export const env = import.meta.env;
+
+const seyes_multiview = env.VITE_RTSP_URL + "/pages/multiview/full?controls";
 
 const { Header, Sider, Content } = Layout;
 
@@ -49,11 +52,7 @@ export default function App() {
             {
               key: "3",
               icon: <VideoCameraOutlined />,
-              label: (
-                <Link to="http://202.44.35.76:9093/pages/multiview/full?controls">
-                  Camera
-                </Link>
-              ),
+              label: <Link to={seyes_multiview}>Camera</Link>,
             },
             {
               key: "4",

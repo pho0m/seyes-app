@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import { useAsync } from "react-use";
 import { useState } from "react";
 import Swal from "sweetalert2";
+export const env = import.meta.env;
 
 export default function SigleReport() {
   const { id } = useParams();
@@ -17,7 +18,7 @@ export default function SigleReport() {
     try {
       const response = await axios({
         method: "GET",
-        url: `http://202.44.35.76:9091/api/reports/${id}`,
+        url: env.VITE_BASE_URL + `/reports/${id}`,
       });
 
       if (response.status === 200) {

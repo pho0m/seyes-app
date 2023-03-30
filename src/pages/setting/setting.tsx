@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { GetSetting } from "../../api/setting";
 import React, { useState, useEffect } from "react";
+export const env = import.meta.env;
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function SettingsPage() {
   const onFinish = async (values: any) => {
     const res = await axios({
       method: "put",
-      url: "http://202.44.35.76:9091/api/settings/edit/1",
+      url: env.VITE_BASE_URL + "/settings/edit/1",
       data: {
         cronjob_time: values.cronjobtime,
         notify_access_token: values.notifyaccesstoken,

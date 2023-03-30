@@ -8,6 +8,9 @@ export default function ReportPage() {
   const data: ReportsTable[] = [];
   const [loading, setLoading] = useState(false);
   const [resdata, setResdata] = useState() as any;
+  const [page, setPage] = useState(1);
+  const [total_count, setTotalCount] = useState(1);
+  const [total_page, setTotalPage] = useState(1);
 
   // const response = GetAllReport();
   // console.log(response);
@@ -15,9 +18,10 @@ export default function ReportPage() {
   const tp = useAsync(async () => {
     setLoading(true);
 
-    const res = await GetAllReport();
+    const res = await GetAllReport(page);
     console.log(res);
     setResdata(res);
+    setTotalCount(resdata.items.length);
   }, []);
 
   if (tp.loading) {
@@ -39,6 +43,8 @@ export default function ReportPage() {
       comon_count: v.com_on_count,
     });
   });
+
+  console.log("res data length" + resdata.items.length);
 
   return (
     <>

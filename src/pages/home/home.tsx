@@ -25,7 +25,7 @@ export default function HomePage() {
   const tp = useAsync(async () => {
     setLoading(true);
 
-    const res = await GetAllReport();
+    const res = await GetAllReport(1);
     console.log(res);
     setResdata(res);
   }, []);

@@ -2,12 +2,12 @@ import axios, { Axios, AxiosResponse } from "axios";
 import Swal from "sweetalert2";
 export const env = import.meta.env;
 
-export async function GetAllReport() {
+export async function GetAllReport(page: number) {
   try {
     const response = await axios({
       method: "GET",
       headers: { "Content-Type": "multipart/form-data" },
-      url: env.VITE_BASE_URL + "/reports?page=1",
+      url: env.VITE_BASE_URL + `/reports?page=${page}`,
     });
 
     if (response.status === 200) {

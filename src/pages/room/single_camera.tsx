@@ -11,6 +11,7 @@ import { useLocation } from "react-router";
 import { RoomData } from "./index_camera";
 import Title from "antd/es/typography/Title";
 import { CheckboxComponent } from "../../components/checkbox";
+export const env = import.meta.env;
 
 export default function SigleCameraPage() {
   const location = useLocation();
@@ -55,7 +56,7 @@ export default function SigleCameraPage() {
       try {
         const response = await axios({
           method: "GET",
-          url: `http://202.44.35.76:9091/api/detect/${rd.id}`,
+          url: env.VITE_BASE_URL + `/detect/${rd.id}`,
         });
         setLoadingPage(false);
         if (response.status === 200) {

@@ -1,11 +1,11 @@
 import { Button, Card, Col, Row, Form, Input } from "antd";
 import Title from "antd/es/typography/Title";
 import { Link } from "react-router-dom";
-import { env } from "../../components/helper";
 import VideoRender from "../../components/video";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { GetRoom } from "../../api/room";
+export const env = import.meta.env;
 
 const width = "100%";
 const height = "100%";
@@ -100,7 +100,7 @@ export default function IndexCameraPage() {
 
     const res = await axios({
       method: "post",
-      url: "http://202.44.35.76:9091/api/rooms/new",
+      url: env.VITE_BASE_URL + "/rooms/new",
       data: {
         active: true,
         label: values.roomlabel,

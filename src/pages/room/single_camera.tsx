@@ -60,20 +60,24 @@ export default function SigleCameraPage() {
         });
         setLoadingPage(false);
         if (response.status === 200) {
-          setResdatect(response.data);
-          setPerson(resdatect.person_count);
-          setComOn(resdatect.com_on_count);
-          setReportData(resdatect.report_date);
-          setReportTime(resdatect.report_time);
-          setAccurency(resdatect.accurency);
-          setImgDetect(resdatect.iamge);
+          // setResdatect(response.data);
+          // setPerson(resdatect.person_count);
+          // setComOn(resdatect.com_on_count);
+          // setReportData(resdatect.report_date);
+          // setReportTime(resdatect.report_time);
+          // setAccurency(resdatect.accurency);
+          // setImgDetect(resdatect.iamge);
+          Swal.fire({
+            title: "success",
+            text: "data have been sent",
+          });
         }
       } catch (err) {
-        // Swal.fire({
-        //   icon: "error",
-        //   title: "Error Something went wrong!",
-        //   text: `${err}`,
-        // });
+        Swal.fire({
+          icon: "error",
+          title: "Error Something went wrong!",
+          text: `${err}`,
+        });
         return;
       }
     })();
@@ -129,29 +133,6 @@ export default function SigleCameraPage() {
                     </Button>
                   </Space>
                 </Space>
-                <Col>
-                  <Title level={4}>Summary</Title>
-                  <p>
-                    <b>Person: </b>
-                    {person}
-                  </p>
-                  <p>
-                    <b>Com On: </b>
-                    {comOn}
-                  </p>
-                  <p>
-                    <b>Upload At: </b>
-                    {repordate}
-                  </p>
-                  <p>
-                    <b>Time: </b>
-                    {reportime}
-                  </p>
-                  <p>
-                    <b>Accurency: </b>
-                    {accurency}
-                  </p>
-                </Col>
               </Col>
             </Card>
           </Row>
@@ -175,7 +156,7 @@ export default function SigleCameraPage() {
             </Card>
           </Row>
 
-          <Row gutter={18}>
+          {/* <Row gutter={18}>
             <Card
               hoverable={true}
               title="Setting Time off AI Detection"
@@ -193,7 +174,7 @@ export default function SigleCameraPage() {
                 />
               </Col>
             </Card>
-          </Row>
+          </Row> */}
         </Col>
       </div>
     </>

@@ -1,21 +1,22 @@
 // @ts-ignore
 
-import { Button, Card, Col, Row, Space, Switch } from "antd";
-import { CameraOutlined } from "@ant-design/icons";
+import { Button, Card, Col, Form, Input, Row, Space, Switch } from "antd";
+import { CameraOutlined, EditOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import VideoRender from "../../components/video";
 import "video.js/dist/video-js.css";
 import { useParams } from "react-router-dom";
+import { GetSigleRoom } from "../../api/sigleroom";
 export const env = import.meta.env;
 
 export default function SigleCameraPage() {
-  const [loadings, setLoadings] = useState<boolean[]>([]);
   // const [isControl, setIsControl] = useState(false);
 
   const [resData, setResponsedata] = useState() as any;
-  const [onedit, setloading] = useState(true);
+  const [loading, setloading] = useState(true);
+  const [editroom, setEditRoom] = useState(true);
 
   /////////////detect defualt //////////////////
 
@@ -36,25 +37,6 @@ export default function SigleCameraPage() {
 
   // console.log("param", params);
 
-  useEffect(() => {
-    (async () => {
-      const response = await axios({
-        method: "GET",
-        url: env.VITE_BASE_URL + `/rooms/${params.id}`,
-      });
-
-      if (response.status === 200) {
-        return setResponsedata(response.data);
-      }
-    })();
-  }, [onedit]);
-
-  if (!resData) {
-    return <>Loading</>; //for loading
-  }
-
-  console.log(resData);
-
   const enterCapture = async () => {
     setloading(false);
 
@@ -74,16 +56,6 @@ export default function SigleCameraPage() {
         url: env.VITE_BASE_URL + `/detect/${params.id}`,
       });
       if (res.status === 200) {
-        // setPerson(resdatect.person_count);
-        // setComOn(resdatect.com_on_count);
-        // setReportData(resdatect.report_date);
-        // setReportTime(resdatect.report_time);
-        // setAccurency(resdatect.accurency);
-        // setImgDetect(res.data.image);
-
-        // console.log("imgdetect", imgdetect);
-        // console.log("response", res.data.image);
-
         setImgDetect(res.data.image);
 
         Swal.fire({
@@ -101,9 +73,43 @@ export default function SigleCameraPage() {
     }
     setloading(true);
   };
+  const Editroom = (e: boolean) => {
+    setEditRoom(e);
+  };
+
+  const onEdit = async (values: any) => {
+    console.log("values F", values);
+
+    const res = await axios({
+      method: "put",
+      url: env.VITE_BASE_URL + `/rooms/edit/${params.id}`,
+      data: {
+        active: true,
+        label: values.roomlabel,
+        cam_url:
+          env.VITE_RTSP_URL +
+          `/stream/${values.camuuid}/channel/0/hls/live/index.m3u8`,
+        uuid_cam: values.camuuid,
+      },
+    });
+    Editroom(true);
+  };
+
+  const onEditFailed = (errorInfo: any) => {
+    console.log("Failed:", errorInfo);
+  };
+
+  useEffect(() => {
+    (async () => {
+      const res = await GetSigleRoom(params.id);
+      setResponsedata(res);
+
+      console.log(resData);
+    })();
+  }, [editroom]);
 
   if (!resData) {
-    return <>Loading</>;
+    return <>Loading</>; //for loading
   }
 
   return (
@@ -117,7 +123,7 @@ export default function SigleCameraPage() {
               bordered={true}
               style={{
                 margin: 10,
-                width: "75%",
+                width: "60%",
                 border: "1px solid #C0C0C0",
               }}
             >
@@ -131,25 +137,100 @@ export default function SigleCameraPage() {
               bordered={true}
               style={{
                 margin: 10,
-                width: "15%",
+                width: "30%",
                 border: "1px solid #C0C0C0",
               }}
             >
-              <Col>
-                <Space wrap>
-                  <Space direction="vertical">
-                    <Button
-                      type="primary"
-                      icon={<CameraOutlined />}
-                      style={{ marginRight: 10 }}
-                      loading={loadings[0]}
-                      onClick={() => enterCapture()}
+              {editroom ? (
+                <>
+                  <Col>
+                    <Space wrap>
+                      <Space direction="vertical">
+                        <Button
+                          type="primary"
+                          icon={<CameraOutlined />}
+                          style={{ marginRight: 10 }}
+                          loading={!loading}
+                          onClick={() => enterCapture()}
+                        >
+                          Capture
+                        </Button>
+                      </Space>
+                    </Space>
+                  </Col>
+
+                  <Col>
+                    <Space wrap>
+                      <Space direction="vertical">
+                        <Button
+                          type="primary"
+                          icon={<EditOutlined />}
+                          style={{ marginTop: 10 }}
+                          loading={!loading}
+                          onClick={() => Editroom(false)}
+                        >
+                          Edit Room
+                        </Button>
+                      </Space>
+                    </Space>
+                  </Col>
+                </>
+              ) : (
+                <>
+                  <Button
+                    style={{
+                      margin: 10,
+                      color: "white",
+                      backgroundColor: "red",
+                      border: "1px solid #C0C0C0",
+                    }}
+                    onClick={() => Editroom(true)}
+                  >
+                    Cancel
+                  </Button>
+                  <Form
+                    name="basic"
+                    labelCol={{ span: 8 }}
+                    wrapperCol={{ span: 16 }}
+                    style={{ maxWidth: 600 }}
+                    initialValues={{ remember: true }}
+                    onFinish={onEdit}
+                    onFinishFailed={onEditFailed}
+                    autoComplete="off"
+                  >
+                    <Form.Item
+                      label="Room Label"
+                      name="roomlabel"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please input your Room Label!",
+                        },
+                      ]}
                     >
-                      Capture
-                    </Button>
-                  </Space>
-                </Space>
-              </Col>
+                      <Input />
+                    </Form.Item>
+                    <Form.Item
+                      label="Camera UUID"
+                      name="camuuid"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please input your Camera UUID!",
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+
+                    <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
+                      <Button type="primary" htmlType="submit">
+                        Submit
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                </>
+              )}
             </Card>
           </Row>
 

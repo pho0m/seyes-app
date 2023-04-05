@@ -6,9 +6,13 @@ import { Link } from "react-router-dom";
 import { useAsync } from "react-use";
 import { GetAllReport } from "../../api/report";
 import { homePageTable, ReportsTable } from "../../components/interface";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { GetAnalytics } from "../../api/analytics";
 const logo =
   "https://media.discordapp.net/attachments/1010925967469989908/1067768595599343636/image.png";
+
+export const env = import.meta.env;
 
 const width = "80%";
 const height = "40%";
@@ -16,8 +20,9 @@ const margin = 20;
 
 export default function HomePage() {
   const data: ReportsTable[] = [];
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [resdata, setResdata] = useState() as any;
+  const [resdata_A, setResponsedata_A] = useState() as any;
 
   // const response = GetAllReport();
   // console.log(response);
@@ -26,15 +31,17 @@ export default function HomePage() {
     setLoading(true);
 
     const res = await GetAllReport(1);
-    console.log(res);
     setResdata(res);
+
+    const res_A = await GetAnalytics();
+    setResponsedata_A(res_A);
+
+    console.log(res_A);
   }, []);
 
   if (tp.loading) {
     return <>Loading</>; //for loading
   }
-
-  console.log("resdata", resdata.items);
 
   let reportdata = resdata.items.map((v) => {
     data.push({
@@ -50,6 +57,23 @@ export default function HomePage() {
     });
   });
 
+  // useEffect(() => {
+  //   (async () => {
+  //     const response = await axios({
+  //       method: "GET",
+  //       url: env.VITE_BASE_URL + "/analytics",
+  //     });
+  //     console.log("response", response);
+  //     if (response.status === 200) {
+  //       return setResponsedata_A(response.data);
+  //     }
+  //   })();
+  // }, [loading]);
+
+  // if (!resdata_A) {
+  //   return <>Loading</>; //for loading
+  // }
+
   return (
     <>
       <Row gutter={[16, 24]}>
@@ -61,17 +85,17 @@ export default function HomePage() {
             style={{ height: height, width: width, margin: margin }}
           >
             <center>
-              <Title level={1}>99</Title>
+              <Title level={1}>{resdata_A.person_count}</Title>
             </center>
           </Card>
           <Card
             hoverable={true}
-            title="Lasted Time"
+            title="Accurency"
             bordered={true}
             style={{ height: height, width: width, margin: margin }}
           >
             <center>
-              <Title level={1}>99</Title>
+              <Title level={1}>{resdata_A.accurency.toFixed(2)}%</Title>
             </center>
           </Card>
         </Col>
@@ -83,7 +107,7 @@ export default function HomePage() {
             style={{ height: height, width: width, margin: margin }}
           >
             <center>
-              <Title level={1}>99</Title>
+              <Title level={1}>{resdata_A.comon_count}</Title>
             </center>
           </Card>
           <Card

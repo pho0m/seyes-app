@@ -59,7 +59,9 @@ export default function IndexCameraPage() {
     roomdata.push({
       id: v.id,
       label: v.label,
-      cam_url: v.cam_url,
+      cam_url:
+        env.VITE_RTSP_URL +
+        `/stream/${v.uuid_cam}/channel/0/hls/live/index.m3u8`,
       uuid_cam: v.uuid_cam,
     });
   });
@@ -96,7 +98,7 @@ export default function IndexCameraPage() {
   };
 
   const onFinish = async (values: any) => {
-    console.log(values.camuuid);
+    console.log("values F", values);
 
     const res = await axios({
       method: "post",
@@ -104,7 +106,9 @@ export default function IndexCameraPage() {
       data: {
         active: true,
         label: values.roomlabel,
-        cam_url: values.camurl,
+        cam_url:
+          env.VITE_RTSP_URL +
+          `/stream/${values.camuuid}/channel/0/hls/live/index.m3u8`,
         uuid_cam: values.camuuid,
       },
     });
@@ -175,18 +179,6 @@ export default function IndexCameraPage() {
                   {
                     required: true,
                     message: "Please input your Room Label!",
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                label="Camera URL"
-                name="camurl"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input your Camera URL!",
                   },
                 ]}
               >
